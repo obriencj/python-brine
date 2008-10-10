@@ -1,0 +1,13 @@
+
+- move tests into their own files, and use unittest
+
+- post module somewhere
+
+- write an article about this
+
+- see if there is maybe a way to drop the cell_set_value requirement
+
+- generators
+
+- bound methods
+
