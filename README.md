@@ -26,7 +26,7 @@ for mucking about.
 [python]: http://python.org "Python"
 
 [pickle]: http://docs.python.org/2.7/library/pickle.html
-"pickle — Python object serialization"
+"pickle - Python object serialization"
 
 [github]: https://github.com/obriencj/python-brine/
 "python-brine on GitHub"
