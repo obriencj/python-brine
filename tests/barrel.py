@@ -1,4 +1,19 @@
+"""
 
+Unit tests for brine.barrel
+
+author: Christopher O'Brien  <obriencj@gmail.com>
+license: LGPLv3
+
+"""
+
+
+from brine import function_unnew
+from brine.barrel import BrineBarrel
+from pickle import Pickler, Unpickler
+from cStringIO import StringIO
+
+import unittest
 
 
 def make_incrementor(start=0, by=5):
@@ -10,32 +25,6 @@ def make_incrementor(start=0, by=5):
     return incrementor
 
 
-
-def test_1():
-    from pickle import Pickler, Unpickler
-    from cStringIO import StringIO
-
-    fives = make_incrementor(0, 5)
-    print fives
-    print fives(), fives(), fives()
-
-    ba = BrineBarrel()
-    ba.add_function(fives, "fives")
-
-    buf = StringIO()
-
-    pi = Pickler(buf)
-    pi.dump(ba)
-
-    up = Unpickler(StringIO(buf.getvalue()))
-    new_ba = up.load()
-    fives = new_ba.get_function("fives", locals())
-
-    print fives
-    print fives(), fives(), fives()
-
-
-
 def make_recursive_adder(by_i=0):
     def add_i(x, rem=by_i):
         if rem > 0:
@@ -45,48 +34,61 @@ def make_recursive_adder(by_i=0):
     return add_i
 
 
+class TestBarrel(unittest.TestCase):
 
-def test_2():
-    from pickle import Pickler, Unpickler
-    from cStringIO import StringIO
+    def test_anon_inner(self):
 
-    add_8 = make_recursive_adder(8)
-    print add_8
-    print add_8(10)
+        fives = make_incrementor(0, 5)
 
-    ba = BrineBarrel()
-    ba.add_function(add_8, "add_8")
+        assert(callable(fives))
+        assert(fives() == 0)
+        assert(fives() == 5)
+        assert(fives() == 10)
 
-    buf = StringIO()
+        ba = BrineBarrel()
+        ba.add_function(fives, "fives")
 
-    pi = Pickler(buf)
-    pi.dump(ba)
+        buf = StringIO()
 
-    up = Unpickler(StringIO(buf.getvalue()))
-    new_ba = up.load()
-    new_ba.rename_function("add_8", "new_add_8")
-    new_add_8 = new_ba.get_function("new_add_8", locals())
+        pi = Pickler(buf)
+        pi.dump(ba)
 
-    print new_add_8
-    print new_add_8(10)
+        up = Unpickler(StringIO(buf.getvalue()))
+        new_ba = up.load()
+        new_fives = new_ba.get_function("fives", locals())
 
+        assert(callable(new_fives))
+        assert(new_fives() == 15)
+        assert(new_fives() == 20)
+        assert(new_fives() == 25)
 
-
-def all_tests():
-    test_1()
-    test_2()
-
+        #assert(function_unnew(fives) == function_unnew(new_fives))
 
 
-# placeholder until I use unittest here
-def suite():
-    return None
+    def test_anon_recursive_inner(self):
 
+        add_8 = make_recursive_adder(8)
 
+        assert(callable(add_8))
+        assert(add_8(10) == 18)
 
-if __name__ == '__main__':
-    all_tests()
+        ba = BrineBarrel()
+        ba.add_function(add_8, "add_8")
 
+        buf = StringIO()
+
+        pi = Pickler(buf)
+        pi.dump(ba)
+
+        up = Unpickler(StringIO(buf.getvalue()))
+        new_ba = up.load()
+        new_ba.rename_function("add_8", "new_add_8")
+        new_add_8 = new_ba.get_function("new_add_8", locals())
+
+        assert(callable(new_add_8))
+        assert(new_add_8(10) == 18)
+
+        #assert(function_unnew(add_8) == function_unnew(new_add_8))
 
 
 #

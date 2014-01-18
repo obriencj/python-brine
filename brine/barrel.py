@@ -13,7 +13,6 @@ import brine
 import types
 
 
-
 class BarreledFunction(brine.BrinedFunction):
 
     """ A brined function in a barrel. This function may be recursive,
@@ -25,19 +24,19 @@ class BarreledFunction(brine.BrinedFunction):
     def __init__(self, function=None, barrel=None):
         self.barrel = barrel
         brine.BrinedFunction.__init__(self, function=function)
-    
-    
+
+
     def __getstate__(self):
         return self.barrel, self.uncode, self.unfunc, self.fdict
-    
-    
+
+
     def __setstate__(self, state):
         self.barrel, self.uncode, self.unfunc, self.fdict = state
-        
+
 
     def brine_var(self, obj):
         if isinstance(obj, types.FunctionType):
-            return self.barrel.brine_function(obj)  
+            return self.barrel.brine_function(obj)
         else:
             return obj
 
@@ -54,10 +53,10 @@ class BarreledFunction(brine.BrinedFunction):
         bval = self.brine_var(val)
 
         # if we bothered to brine it, create a new cell for the brined
-        # value 
+        # value
         if not bval is val:
             cell = brine.cell_from_value(bval)
-            
+
         return cell
 
 
@@ -69,7 +68,7 @@ class BarreledFunction(brine.BrinedFunction):
         # unbrined value.
         if not ubval is val:
             brine.cell_set_value(cell, ubval)
-            
+
         return cell
 
 
@@ -80,7 +79,7 @@ class BarreledFunction(brine.BrinedFunction):
         uncode = self.uncode
         if uncode[5]:
             uncode[5] = tuple([self.brine_var(c) for c in uncode[5]])
-    
+
 
     def set_function(self, function):
         # make sure the barrel only attempts to brine this function
@@ -93,7 +92,7 @@ class BarreledFunction(brine.BrinedFunction):
         # brine the function's closure
         unfunc = self.unfunc
         if unfunc[4]:
-            unfunc[4] = tuple([self.brine_cell(c) for c in unfunc[4]])        
+            unfunc[4] = tuple([self.brine_cell(c) for c in unfunc[4]])
 
 
     def get_code(self):
@@ -105,21 +104,21 @@ class BarreledFunction(brine.BrinedFunction):
         if ucode[5]:
             ucode[5] = [self.unbrine_var(c, globals) for c in ucode[5]]
             ucode[5] = tuple(ucode[5])
-            
+
         return new.code(*ucode)
 
 
     def get_function(self, globals):
         import new
-        
+
         ufunc = self.unfunc[:]
         ufunc[0] = self.get_code()
         ufunc[1] = globals
-        
+
         func = new.function(*ufunc)
-        
+
         func.__dict__.update(self.fdict)
-        
+
         # make sure the barrel only attempts to unbrine this function
         # once, so put our entry into the func_inst map before
         # attempting to unbrine our internals
@@ -130,13 +129,12 @@ class BarreledFunction(brine.BrinedFunction):
         # to do this in a second pass because it's possible that one
         # of the cells will want to be the same function that we've
         # just unbrined
-            
+
         if ufunc[4]:
             ufunc[4] = [self.unbrine_cell(c, globals) for c in ufunc[4]]
             ufunc[4] = tuple(ufunc[4])
-        
-        return func
 
+        return func
 
 
 class BarreledMethod(BarreledFunction):
@@ -169,7 +167,6 @@ class BarreledMethod(BarreledFunction):
         BarreledFunction.__setstate__(self, state[1:])
 
 
-
 class BrineBarrel(object):
 
     """ a barrel full of brined functions. Use a BrineBarrel when you
@@ -184,11 +181,11 @@ class BrineBarrel(object):
         # or unpickling. Never actually stored.
         self.func_inst = {}
 
-    
+
     def __getstate__(self):
         return (self.functions, )
-    
-    
+
+
     def __setstate__(self, state):
         (self.functions, ) = state
         self.func_inst = {}
@@ -202,7 +199,7 @@ class BrineBarrel(object):
 
             elif isinstance(func, types.FunctionType):
                 bfunc = BarreledFunction(function=func, barrel=self)
-                
+
             self.func_inst[func] = bfunc
         return bfunc
 
@@ -216,7 +213,7 @@ class BrineBarrel(object):
 
 
     def rename_function(self, original_name, new_name, recurse=True):
-        
+
         """ changes the name of a function in the barrel. If recurse
         is true, then all references to that function by name will be
         in any of the functions in this barrel will be replaced.
@@ -226,8 +223,8 @@ class BrineBarrel(object):
         fun = self.functions.get(original_name)
         if not fun:
             return
-        
-        self.remove_function(original_name, and_aliases=False)
+
+        self.remove_brined(original_name, and_aliases=False)
 
         fun.rename(new_name, recurse)
 
@@ -240,11 +237,11 @@ class BrineBarrel(object):
 
     def remove_brined(self, name, and_aliases=False):
         funcmap = self.functions
-        
+
         func = funcmap.get(name)
         if not func:
             return
-        
+
         del funcmap[name]
         if and_aliases:
             for k,v in funcmap.items():
@@ -254,14 +251,14 @@ class BrineBarrel(object):
 
     def add_brined(self, brinedfunc, as_name=None):
         if not as_name:
-            as_name = brinedfunc.get_name()
+            as_name = brinedfunc.get_function_name()
         self.functions[as_name] = brinedfunc
 
 
     def get_function(self, name, globals):
 
         """ returns an unbrined function, referenced by name """
-        
+
         return self.functions.get(name).get_function(globals)
 
 
@@ -274,34 +271,31 @@ class BrineBarrel(object):
         self.add_brined(bfunc, as_name=as_name)
 
 
-
-def barrel_from_globals(globals):
+def barrel_from_globals(from_globals):
 
     """ automatically create a barrel filled with the functions found
     in the specified globals """
 
     barrel = BrineBarrel()
-    
-    for k,v in globals.items():
+
+    for k,v in from_globals.items():
         if isinstance(v, types.FunctionType) and \
            not isinstance(v, types.BuiltinFunctionType):
-            
+
             barrel.add_function(v, as_name=k)
 
     return barrel
 
 
-
-def deploy_barrel(barrel, globals):
+def deploy_barrel(barrel, into_globals):
 
     """ unbrines all the functions in the barrel and places them into
     the given globals """
-    
+
     prep = dict(barrel.functions)
     for k,v in prep.items():
         prep[k] = v.get_function(globals)
-    globals.update(prep)
-
+    into_globals.update(prep)
 
 
 #
