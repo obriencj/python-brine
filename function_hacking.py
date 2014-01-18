@@ -1,3 +1,17 @@
+# This library is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, see
+# <http://www.gnu.org/licenses/>.
+
 
 """
 
@@ -7,14 +21,12 @@ This is a code narrative that explains how functions are represented,
 and what information we need to have to assemble new functions.
 
 author: Christopher O'Brien  <siege@preoccupied.net>
-
-$Revision: 1.3 $ $Date: 2007/11/02 18:52:27 $
+license: LGPL v.3
 
 """
 
 
 import new
-
 
 
 # a simple function that adds the constant 8 to its argument and
