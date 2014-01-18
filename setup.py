@@ -29,7 +29,7 @@ license: LGPL v.3
 from setuptools import setup, Extension
 
 
-ext = [ Extension("brine.cellwork", ["brine/cellwork.c"]), ]
+ext = [ Extension("brine._cellwork", ["brine/cellwork.c"]), ]
 
 
 setup( name = "brine",

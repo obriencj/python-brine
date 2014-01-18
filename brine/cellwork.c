@@ -1,4 +1,21 @@
 /*
+  This library is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 3 of the
+  License, or (at your option) any later version.
+
+  This library is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Lesser General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, see
+  <http://www.gnu.org/licenses/>.
+*/
+
+
+/**
   This is just to permit me to change the values of cells conveniently,
   which is absolutely necessary in order to pickle recursive function
   definitions.
@@ -59,11 +76,11 @@ static PyMethodDef methods[] = {
 };
 
 
-PyMODINIT_FUNC initcellwork() {
+PyMODINIT_FUNC init_cellwork() {
   PyObject *mod;
   PyObject *celltype;
 
-  mod = Py_InitModule("brine.cellwork", methods);
+  mod = Py_InitModule("brine._cellwork", methods);
 
   // may as well make a convenient spot to get a reference to the
   // CellType type while we're at it
