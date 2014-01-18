@@ -34,6 +34,15 @@ def make_recursive_adder(by_i=0):
     return add_i
 
 
+def create_pair(default_val=None):
+    shared = [default_val]
+    def getter():
+        return shared[0]
+    def setter(val):
+        shared[0] = val
+    return getter, setter
+
+
 class TestBarrel(unittest.TestCase):
 
     def test_anon_inner(self):
@@ -90,6 +99,45 @@ class TestBarrel(unittest.TestCase):
 
         #assert(function_unnew(add_8) == function_unnew(new_add_8))
 
+
+    def test_shared_cell(self):
+
+        getter, setter = create_pair(8)
+        assert(getter() == 8)
+
+        setter(9)
+        assert(getter() == 9)
+
+        ba = BrineBarrel()
+        ba.add_function(getter, "getter")
+        ba.add_function(setter, "setter")
+
+        buf = StringIO()
+
+        pi = Pickler(buf)
+        pi.dump(ba)
+
+        up = Unpickler(StringIO(buf.getvalue()))
+        new_ba = up.load()
+        
+        new_getter = new_ba.get_function("getter", locals())
+        new_setter = new_ba.get_function("setter", locals())
+
+        # check the initial value of the new pair
+        assert(new_getter() == 9)
+
+        # change the new pair and check that it did indeed change
+        new_setter(10)
+        assert(new_getter() == 10)
+
+        # the old pair isn't effected by the new pair
+        assert(getter() == 9)
+        setter(7)
+        assert(getter() == 7)
+
+        # and show that we haven't effected our new pair
+        assert(new_getter() == 10)
+    
 
 #
 # The end.
