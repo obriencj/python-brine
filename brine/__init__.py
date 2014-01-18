@@ -35,24 +35,25 @@ licelse: LGPL v.3
 
 
 # CellType, cell_get_value, cell_from_value, cell_set_value
-from brine.cellwork import *
+from brine._cellwork import *
 
 import copy_reg
 import new
 import types
 
 
-__all__ = [ "brine_function", "unbrine_function" ]
+__all__ = [ "BrineFunction",
+            "brine", "unbrine" ]
 
 
-def brine_function(func):
+def brine(func):
 
     ''' wraps a function so that it may be pickled '''
 
-    return BrinedFunction(function=func)
+    return BrineFunction(function=func)
 
 
-def unbrine_function(bfunc, with_globals):
+def unbrine(bfunc, with_globals):
 
     ''' unwraps a function that had been pickled '''
 
@@ -100,7 +101,7 @@ def function_unnew(func):
 # unpickling
 
 
-class BrinedFunction(object):
+class BrineFunction(object):
 
     """ wraps a function so that it may be pickled. For the most part
     you'll want to use brine_function and unbrine_function instead of
@@ -108,9 +109,9 @@ class BrinedFunction(object):
 
 
     def __init__(self, function=None):
-        self.uncode = ()
-        self.unfunc = ()
-        self.fdict = {}
+        self._uncode = ()
+        self._unfunc = ()
+        self._fdict = {}
 
         if function:
             self.set_function(function)
@@ -118,27 +119,27 @@ class BrinedFunction(object):
 
     def __getstate__(self):
         # used to pickle
-        return self.uncode, self.unfunc, self.fdict
+        return self._uncode, self._unfunc, self._fdict
 
 
     def __setstate__(self, state):
         # used to unpickle
-        self.uncode, self.unfunc, self.fdict = state
+        self._uncode, self._unfunc, self._fdict = state
 
 
     def set_uncode(self, uncode):
         # the expanded data to create a code object
-        self.uncode = list(uncode)
+        self._uncode = list(uncode)
 
 
     def set_unfunc(self, unfunc):
         # the expanded data to create a function object
-        self.unfunc = list(unfunc)
+        self._unfunc = list(unfunc)
 
 
     def set_fdict(self, fdict):
         # the __dict__ for the function object
-        self.fdict = dict(fdict)
+        self._fdict = dict(fdict)
 
 
     def set_function(self, function):
@@ -148,8 +149,8 @@ class BrinedFunction(object):
         self.set_code(function.func_code)
 
         unfunc = function_unnew(function)
-        unfunc[0] = None
-        unfunc[1] = {}
+        unfunc[0] = None   # func_code
+        unfunc[1] = dict() # func_globals
         self.set_unfunc(unfunc)
 
         self.set_fdict(function.__dict__)
@@ -162,18 +163,18 @@ class BrinedFunction(object):
         self.set_uncode(code_unnew(code))
 
 
-    def get_function(self, globals):
+    def get_function(self, with_globals):
 
         """ create a copy of the original function """
 
         # compose the function
-        ufunc = self.unfunc[:]
+        ufunc = self._unfunc[:]
         ufunc[0] = self.get_code()
-        ufunc[1] = globals
+        ufunc[1] = with_globals
         func = new.function(*ufunc)
 
         # setup any of the function's members
-        func.__dict__.update(self.fdict)
+        func.__dict__.update(self._fdict)
 
         return func
 
@@ -182,14 +183,14 @@ class BrinedFunction(object):
 
         """ create a copy of the code from the original function """
 
-        return new.code(*self.uncode)
+        return new.code(*self._uncode)
 
 
     def get_function_name(self):
 
         """ the internal name for the wrapped function """
 
-        return self.unfunc[2]
+        return self._unfunc[2]
 
 
     def rename(self, name, recurse=True):
@@ -202,8 +203,8 @@ class BrinedFunction(object):
 
         orig = self.get_function_name()
 
-        self.unfunc[2] = name
-        self.uncode[9] = name
+        self._unfunc[2] = name
+        self._uncode[9] = name
 
         if recurse:
             self.rename_references(orig, name)
@@ -214,14 +215,14 @@ class BrinedFunction(object):
         """ change any references to old_name to instead reference
         new_name. This does not change function parameter names. """
 
-        uncode = self.uncode
+        uncode = self._uncode
 
         # nested defs or lambdas will need to have their references
         # tweaked too. They should already be BrinedFunctions by this
         # point
         consts = uncode[5]
         for c in consts:
-            if isinstance(c, BrinedFunction):
+            if isinstance(c, BrineFunction):
                 c.rename_references(old_name, new_name)
 
         names = uncode[6]
@@ -235,29 +236,25 @@ class BrinedFunction(object):
 
             # make sure we're not creating a conflict with this rename
             if new_name in varnames or new_name in cellvars:
-                raise Exception("renaming references of %r to %r"
-                                " creates conflicts" % (old_name, new_name))
+                errm = "conflict renaming %r to %r" % (old_name, new_name)
+                raise RenameException(errm)
 
-            def swap(n):
-                if n == old_name:
-                    return new_name
-                else:
-                    return n
+            swap = lambda n: new_name if n == old_name else n
 
-            uncode[6] = tuple([swap(n) for n in names])
-            uncode[12] = tuple([swap(n) for n in freevars])
-            uncode[13] = tuple([swap(n) for n in cellvars])
+            uncode[6] = tuple(swap(n) for n in names)
+            uncode[12] = tuple(swap(n) for n in freevars)
+            uncode[13] = tuple(swap(n) for n in cellvars)
 
 
 # let's give the pickle module knowledge of how to load and dump Cell
 # and Code objects
 
 
-def pickle_cell(cell):
-    return unpickle_cell, (cell_get_value(cell), )
+def _pickle_cell(cell):
+    return _unpickle_cell, (cell_get_value(cell), )
 
 
-def unpickle_cell(cell_val):
+def _unpickle_cell(cell_val):
     return cell_from_value(cell_val)
 
 
@@ -267,23 +264,23 @@ def reg_cell_pickler():
     will ensure that the CellType has pickle/unpickle functions
     registered with copy_reg """
 
-    copy_reg.pickle(CellType, pickle_cell, unpickle_cell)
+    copy_reg.pickle(CellType, _pickle_cell, _unpickle_cell)
 
 
 # register when the module is loaded
 reg_cell_pickler()
 
 
-def pickle_code(code):
-    return unpickle_code, tuple(code_unnew(code))
+def _pickle_code(code):
+    return _unpickle_code, tuple(code_unnew(code))
 
 
-def unpickle_code(*ncode):
+def _unpickle_code(*ncode):
     return new.code(*ncode)
 
 
 def reg_code_pickler():
-    copy_reg.pickle(types.CodeType, pickle_code, unpickle_code)
+    copy_reg.pickle(types.CodeType, _pickle_code, _unpickle_code)
 
 
 # register when the module is loaded

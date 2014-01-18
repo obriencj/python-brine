@@ -1,3 +1,18 @@
+# This library is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, see
+# <http://www.gnu.org/licenses/>.
+
+
 """
 
 Unit tests for brine.barrel
@@ -9,7 +24,7 @@ license: LGPLv3
 
 
 from brine import function_unnew
-from brine.barrel import BrineBarrel
+from brine.barrel import Barrel
 from pickle import Pickler, Unpickler
 from cStringIO import StringIO
 
@@ -54,7 +69,7 @@ class TestBarrel(unittest.TestCase):
         assert(fives() == 5)
         assert(fives() == 10)
 
-        ba = BrineBarrel()
+        ba = Barrel()
         ba.add_function(fives, "fives")
 
         buf = StringIO()
@@ -81,7 +96,7 @@ class TestBarrel(unittest.TestCase):
         assert(callable(add_8))
         assert(add_8(10) == 18)
 
-        ba = BrineBarrel()
+        ba = Barrel()
         ba.add_function(add_8, "add_8")
 
         buf = StringIO()
@@ -108,7 +123,7 @@ class TestBarrel(unittest.TestCase):
         setter(9)
         assert(getter() == 9)
 
-        ba = BrineBarrel()
+        ba = Barrel()
         ba.add_function(getter, "getter")
         ba.add_function(setter, "setter")
 
