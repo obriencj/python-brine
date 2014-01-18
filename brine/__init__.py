@@ -1,3 +1,18 @@
+# This library is free software; you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 3 of the
+# License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, see
+# <http://www.gnu.org/licenses/>.
+
+
 """
 
 Provides a simple way to pickle/unpickle function objects.
@@ -13,15 +28,21 @@ new copy of the original function
 See the brine.barrel module in order to pickle recursive functions,
 multiple functions, or functions with closures
 
-author: Christopher O'Brien  <siege@preoccupied.net>
-
-$Revision: 1.3 $ $Date: 2007/11/02 18:52:27 $
+author: Christopher O'Brien  <obriencj@gmail.com>
+licelse: LGPL v.3
 
 """
 
 
 # CellType, cell_get_value, cell_from_value, cell_set_value
 from brine.cellwork import *
+
+import copy_reg
+import new
+import types
+
+
+__all__ = [ "brine_function", "unbrine_function" ]
 
 
 def brine_function(func):
@@ -31,11 +52,11 @@ def brine_function(func):
     return BrinedFunction(function=func)
 
 
-def unbrine_function(bfunc, globals):
+def unbrine_function(bfunc, with_globals):
 
     ''' unwraps a function that had been pickled '''
 
-    return bfunc.get_function(globals)
+    return bfunc.get_function(with_globals)
 
 
 def code_unnew(code):
@@ -74,8 +95,8 @@ def function_unnew(func):
 # A function object needs to be brined before it can be pickled, and
 # unbrined after it's unpickled. We need to do this because pickle has
 # #some default behavior for pickling types.FunctionType which we do
-# not #want to break. Therefore, we will simply wrap any Function
-# instances #in BrinedFunction before pickling, and unwap them after
+# not want to break. Therefore, we will simply wrap any Function
+# instances in BrinedFunction before pickling, and unwap them after
 # unpickling
 
 
@@ -145,8 +166,6 @@ class BrinedFunction(object):
 
         """ create a copy of the original function """
 
-        import new
-
         # compose the function
         ufunc = self.unfunc[:]
         ufunc[0] = self.get_code()
@@ -163,7 +182,6 @@ class BrinedFunction(object):
 
         """ create a copy of the code from the original function """
 
-        import new
         return new.code(*self.uncode)
 
 
@@ -231,7 +249,6 @@ class BrinedFunction(object):
             uncode[13] = tuple([swap(n) for n in cellvars])
 
 
-
 # let's give the pickle module knowledge of how to load and dump Cell
 # and Code objects
 
@@ -250,7 +267,6 @@ def reg_cell_pickler():
     will ensure that the CellType has pickle/unpickle functions
     registered with copy_reg """
 
-    import copy_reg
     copy_reg.pickle(CellType, pickle_cell, unpickle_cell)
 
 
@@ -258,24 +274,20 @@ def reg_cell_pickler():
 reg_cell_pickler()
 
 
-
 def pickle_code(code):
     return unpickle_code, tuple(code_unnew(code))
 
 
 def unpickle_code(*ncode):
-    import new
     return new.code(*ncode)
 
 
 def reg_code_pickler():
-    import copy_reg, types
     copy_reg.pickle(types.CodeType, pickle_code, unpickle_code)
 
 
 # register when the module is loaded
 reg_code_pickler()
-
 
 
 #
