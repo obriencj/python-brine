@@ -5,10 +5,8 @@
 */
 
 
-
 #include <Python.h>
 #include <cellobject.h>
-
 
 
 static PyObject *cell_get_value(PyObject *self, PyObject *args) {
@@ -21,7 +19,9 @@ static PyObject *cell_get_value(PyObject *self, PyObject *args) {
 }
 
 
-
+/* this function is the only one that cannot be replicated in pure
+   python. The rest of this module can be done (albeit more slowly) in
+   python with some function hacking. */
 static PyObject *cell_set_value(PyObject *self, PyObject *args) {
   PyObject *cell = NULL;
   PyObject *val = NULL;
@@ -35,7 +35,6 @@ static PyObject *cell_set_value(PyObject *self, PyObject *args) {
 }
 
 
-
 static PyObject *cell_from_value(PyObject *self, PyObject *args) {
   PyObject *val = NULL;
 
@@ -44,7 +43,6 @@ static PyObject *cell_from_value(PyObject *self, PyObject *args) {
 
   return PyCell_New(val);
 }
-
 
 
 static PyMethodDef methods[] = {
@@ -61,18 +59,18 @@ static PyMethodDef methods[] = {
 };
 
 
-
 PyMODINIT_FUNC initcellwork() {
   PyObject *mod;
   PyObject *celltype;
 
   mod = Py_InitModule("brine.cellwork", methods);
 
+  // may as well make a convenient spot to get a reference to the
+  // CellType type while we're at it
   celltype = (PyObject *) &PyCell_Type;
   Py_INCREF(celltype);
   PyModule_AddObject(mod, "CellType", celltype);
 }
-
 
 
 /* The end. */
