@@ -35,16 +35,20 @@ __all__ = [ "BarrelFunction", "BarrelMethod", "Barrel",
 
 
 class RenameException(Exception):
-    """ Raised by Barrel.rename_function """
+    """
+    Raised by Barrel.rename_function
+    """
     pass
 
 
 class BarrelFunction(BrineFunction):
 
-    """ A brined function in a barrel. This function may be recursive,
-    or may reference other functions. Use the BrineBarrel's
-    add_function and get_function methods rather than instanciating
-    this class directly. """
+    """
+    A brined function in a barrel. This function may be recursive, or
+    may reference other functions. Use the BrineBarrel's add_function
+    and get_function methods rather than instanciating this class
+    directly.
+    """
 
 
     def __init__(self, function=None, barrel=None):
@@ -161,7 +165,9 @@ class BarrelFunction(BrineFunction):
 
 class BarrelMethod(BarrelFunction):
 
-    """ A brined bound method in a barrel. """
+    """
+    A brined bound method in a barrel.
+    """
 
 
     def __init__(self, function=None):
@@ -191,9 +197,11 @@ class BarrelMethod(BarrelFunction):
 
 class Barrel(object):
 
-    """ a barrel full of brined functions. Use a BrineBarrel when you
-    need to brine more than one function, or one or more recursive
-    functions """
+    """
+    A collection of brined functions. Use a Barrel when you need to
+    brine more than one function, or one or more recursive functions,
+    or functions which share closures, etc.
+    """
 
 
     def __init__(self):
@@ -236,11 +244,13 @@ class Barrel(object):
 
     def rename_function(self, original_name, new_name, recurse=True):
 
-        """ Changes the name of a function inside the barrel. If recurse
-        is true, then all references to that function by name in any of
+        """
+        Changes the name of a function inside the barrel. If recurse is
+        true, then all references to that function by name in any of
         the functions in this barrel will be replaced.  Raises a
         RenameException if that name is already being referenced by
-        one of the functions in the barrel. """
+        one of the functions in the barrel.
+        """
 
         fun = self.functions.get(original_name)
         if not fun:
@@ -279,15 +289,19 @@ class Barrel(object):
 
     def get_function(self, name, globals):
 
-        """ returns an unbrined function, referenced by name """
+        """
+        returns an unbrined function, referenced by name
+        """
 
         return self.functions.get(name).get_function(globals)
 
 
     def add_function(self, func, as_name=None):
 
-        """ takes a function, brines it, and adds it to this barrel
-        by its current name, or by an alias """
+        """
+        takes a function, brines it, and adds it to this barrel by its
+        current name, or by an alias
+        """
 
         bfunc = self.brine_function(func)
         self.add_brined(bfunc, as_name=as_name)
@@ -301,7 +315,7 @@ def barrel_from_globals(from_globals):
     barrel = BrineBarrel()
 
     for k,v in from_globals.items():
-        if isinstance(v, FunctionType) and \
+        if isinstance(v, (FunctionType, MethodType)) and \
            not isinstance(v, BuiltinFunctionType):
 
             barrel.add_function(v, as_name=k)

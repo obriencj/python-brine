@@ -14,23 +14,21 @@
 
 
 """
-
 Provides a simple way to pickle/unpickle function objects.
 
-So, to truly pickle a function we need to be able to duplicate its
-code. By default, pickle will simply store the function's name, and
-then attempt to associate that with a function when unpickling. In
-order to mark a function for actual storage, use the brine_function
-function to create a BrinedFunction, which may then be pickled. Later,
-after unpickling the BrinedFunction, call unbrine_function to get a
-new copy of the original function
+To truly pickle a function we need to be able to duplicate its code
+and its closures. By default, pickle will simply store the function's
+name, and then attempt to associate that with a function when
+unpickling. In order to mark a function for actual storage, use the
+`brine` function to create a BrineFunction, which may then be
+pickled. Later, after unpickling the BrineFunction, call `unbrine` to
+get a new copy of the original function
 
 See the brine.barrel module in order to pickle recursive functions,
-multiple functions, or functions with closures
+multiple functions, or functions with closures.
 
 author: Christopher O'Brien  <obriencj@gmail.com>
 licelse: LGPL v.3
-
 """
 
 
@@ -48,22 +46,28 @@ __all__ = [ "BrineFunction",
 
 def brine(func):
 
-    ''' wraps a function so that it may be pickled '''
+    '''
+    wraps a function so that it may be pickled
+    '''
 
     return BrineFunction(function=func)
 
 
 def unbrine(bfunc, with_globals):
 
-    ''' unwraps a function that had been pickled '''
+    '''
+    unwraps a function that had been pickled
+    '''
 
     return bfunc.get_function(with_globals)
 
 
 def code_unnew(code):
 
-    """ returns the necessary arguments for use in new.code to create
-    an identical but separate code block """
+    """
+    returns the necessary arguments for use in new.code to create an
+    identical but separate code block
+    """
 
     return [ code.co_argcount,
              code.co_nlocals,
@@ -83,8 +87,10 @@ def code_unnew(code):
 
 def function_unnew(func):
 
-    """ returns the necessary arguments for use in new.function to
-    create an identical but separate function """
+    """
+    returns the necessary arguments for use in new.function to create
+    an identical but separate function
+    """
 
     return [ func.func_code,
              func.func_globals,
@@ -103,9 +109,11 @@ def function_unnew(func):
 
 class BrineFunction(object):
 
-    """ wraps a function so that it may be pickled. For the most part
+    """
+    wraps a function so that it may be pickled. For the most part
     you'll want to use brine_function and unbrine_function instead of
-    instantiating or accessing this class directly """
+    instantiating or accessing this class directly
+    """
 
 
     def __init__(self, function=None):
@@ -144,7 +152,9 @@ class BrineFunction(object):
 
     def set_function(self, function):
 
-        """ set the function to be pickled by this instance """
+        """
+        set the function to be pickled by this instance
+        """
 
         self.set_code(function.func_code)
 
@@ -158,14 +168,18 @@ class BrineFunction(object):
 
     def set_code(self, code):
 
-        """ set the function's code to be pickled by this instance """
+        """
+        set the function's code to be pickled by this instance
+        """
 
         self.set_uncode(code_unnew(code))
 
 
     def get_function(self, with_globals):
 
-        """ create a copy of the original function """
+        """
+        create a copy of the original function
+        """
 
         # compose the function
         ufunc = self._unfunc[:]
@@ -181,25 +195,31 @@ class BrineFunction(object):
 
     def get_code(self):
 
-        """ create a copy of the code from the original function """
+        """
+        create a copy of the code from the original function
+        """
 
         return new.code(*self._uncode)
 
 
     def get_function_name(self):
 
-        """ the internal name for the wrapped function """
+        """
+        the internal name for the wrapped function
+        """
 
         return self._unfunc[2]
 
 
     def rename(self, name, recurse=True):
 
-        """ attempts to rename the function data. If recurse is True,
-        then any references in the function to its own name (provided
-        it's not a shadowed variable reference), will be changed to
-        reflect the new name. This makes it possible to rename
-        recursive functions. """
+        """
+        attempts to rename the function data. If recurse is True, then any
+        references in the function to its own name (provided it's not
+        a shadowed variable reference), will be changed to reflect the
+        new name. This makes it possible to rename recursive
+        functions.
+        """
 
         orig = self.get_function_name()
 
@@ -212,8 +232,10 @@ class BrineFunction(object):
 
     def rename_references(self, old_name, new_name):
 
-        """ change any references to old_name to instead reference
-        new_name. This does not change function parameter names. """
+        """
+        change any references to old_name to instead reference
+        new_name. This does not change function parameter names.
+        """
 
         uncode = self._uncode
 
@@ -260,9 +282,11 @@ def _unpickle_cell(cell_val):
 
 def reg_cell_pickler():
 
-    """ Called automatically when the module is loaded, this function
-    will ensure that the CellType has pickle/unpickle functions
-    registered with copy_reg """
+    """
+    Called automatically when the module is loaded, this function will
+    ensure that the CellType has pickle/unpickle functions registered
+    with copy_reg
+    """
 
     copy_reg.pickle(CellType, _pickle_cell, _unpickle_cell)
 
