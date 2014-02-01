@@ -123,14 +123,12 @@ class TestBarrel(unittest.TestCase):
         ba["setter"] = setter
 
         buf = StringIO()
-
         pi = Pickler(buf)
         pi.dump(ba)
 
         up = Unpickler(StringIO(buf.getvalue()))
         new_ba = up.load()
 
-        ba.use_globals(locals())
         new_getter = new_ba["getter"]
         new_setter = new_ba["setter"]
 
