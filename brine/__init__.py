@@ -59,7 +59,7 @@ def unbrine(bfunc, with_globals):
     unwraps a function that had been pickled
     '''
 
-    return bfunc.get_function(with_globals)
+    return bfunc.get(with_globals)
 
 
 def code_unnew(code):
@@ -117,75 +117,59 @@ class BrineFunction(object):
 
 
     def __init__(self, function=None):
-        self._uncode = ()
         self._unfunc = ()
         self._fdict = {}
 
         if function:
-            self.set_function(function)
+            self.set(function)
 
 
     def __getstate__(self):
         # used to pickle
-        return self._uncode, self._unfunc, self._fdict
+        return self._unfunc, self._fdict
 
 
     def __setstate__(self, state):
         # used to unpickle
-        self._uncode, self._unfunc, self._fdict = state
+        self._unfunc, self._fdict = state
 
 
-    def set_uncode(self, uncode):
-        # the expanded data to create a code object
-        self._uncode = list(uncode)
-
-
-    def set_unfunc(self, unfunc):
-        # the expanded data to create a function object
-        self._unfunc = list(unfunc)
-
-
-    def set_fdict(self, fdict):
-        # the __dict__ for the function object
-        self._fdict = dict(fdict)
-
-
-    def set_function(self, function):
+    def set(self, function):
 
         """
         set the function to be pickled by this instance
         """
 
-        self.set_code(function.func_code)
+        self._unfunc = self._function_unnew(function)
+        self._fdict = dict(function.__dict__)
 
+
+    def _function_unnew(self, function):
         unfunc = function_unnew(function)
-        unfunc[0] = None   # func_code
+        unfunc[0] = self._code_unnew(unfunc[0])
         unfunc[1] = dict() # func_globals
-        self.set_unfunc(unfunc)
-
-        self.set_fdict(function.__dict__)
+        return unfunc
 
 
-    def set_code(self, code):
+    def _code_unnew(self, code):
 
         """
-        set the function's code to be pickled by this instance
+        can be overridden to process the unnew data
         """
 
-        self.set_uncode(code_unnew(code))
+        return code_unnew(code)
 
 
-    def get_function(self, with_globals):
+    def get(self, with_globals=None):
 
         """
         create a copy of the original function
         """
 
+        glbls = with_globals or globals()
+
         # compose the function
-        ufunc = self._unfunc[:]
-        ufunc[0] = self.get_code()
-        ufunc[1] = with_globals
-        func = new.function(*ufunc)
+        func = self._function_new(glbls, list(self._unfunc))
 
         # setup any of the function's members
         func.__dict__.update(self._fdict)
@@ -193,13 +177,14 @@ class BrineFunction(object):
         return func
 
 
-    def get_code(self):
+    def _function_new(self, with_globals, ufunc):
+        ufunc[0] = self._code_new(with_globals, list(ufunc[0]))
+        ufunc[1] = with_globals
+        return new.function(*ufunc)
 
-        """
-        create a copy of the code from the original function
-        """
 
-        return new.code(*self._uncode)
+    def _code_new(self, with_globals, uncode):
+        return new.code(*uncode)
 
 
     def get_function_name(self):
@@ -237,7 +222,7 @@ class BrineFunction(object):
         new_name. This does not change function parameter names.
         """
 
-        uncode = self._uncode
+        uncode = self._unfunc[0]
 
         # nested defs or lambdas will need to have their references
         # tweaked too. They should already be BrinedFunctions by this

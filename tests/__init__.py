@@ -22,10 +22,13 @@ author: Christopher O'Brien  <obriencj@gmail.com>
 """
 
 
-import new
+
 from brine import function_unnew, code_unnew
 from brine import brine, unbrine
+from cStringIO import StringIO
+from pickle import Pickler, Unpickler
 
+import new
 import unittest
 
 
@@ -62,9 +65,6 @@ class TestAdderDuplication(unittest.TestCase):
 
 class TestAdderPickling(unittest.TestCase):
     def testPickling(self):
-
-        from cStringIO import StringIO
-        from pickle import Pickler, Unpickler
 
         # this is the function we'll be duplicating.
         func_a = make_adder(8)

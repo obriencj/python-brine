@@ -70,23 +70,21 @@ class TestBarrel(unittest.TestCase):
         assert(fives() == 10)
 
         ba = Barrel()
-        ba.add_function(fives, "fives")
+        ba["fives"] = fives
 
         buf = StringIO()
-
         pi = Pickler(buf)
         pi.dump(ba)
 
         up = Unpickler(StringIO(buf.getvalue()))
         new_ba = up.load()
-        new_fives = new_ba.get_function("fives", locals())
+
+        new_fives = new_ba["fives"]
 
         assert(callable(new_fives))
         assert(new_fives() == 15)
         assert(new_fives() == 20)
         assert(new_fives() == 25)
-
-        #assert(function_unnew(fives) == function_unnew(new_fives))
 
 
     def test_anon_recursive_inner(self):
@@ -97,22 +95,19 @@ class TestBarrel(unittest.TestCase):
         assert(add_8(10) == 18)
 
         ba = Barrel()
-        ba.add_function(add_8, "add_8")
+        ba["add_8"] = add_8
 
         buf = StringIO()
-
         pi = Pickler(buf)
         pi.dump(ba)
 
         up = Unpickler(StringIO(buf.getvalue()))
         new_ba = up.load()
-        new_ba.rename_function("add_8", "new_add_8")
-        new_add_8 = new_ba.get_function("new_add_8", locals())
+
+        new_add_8 = new_ba["add_8"]
 
         assert(callable(new_add_8))
         assert(new_add_8(10) == 18)
-
-        #assert(function_unnew(add_8) == function_unnew(new_add_8))
 
 
     def test_shared_cell(self):
@@ -124,8 +119,8 @@ class TestBarrel(unittest.TestCase):
         assert(getter() == 9)
 
         ba = Barrel()
-        ba.add_function(getter, "getter")
-        ba.add_function(setter, "setter")
+        ba["getter"] = getter
+        ba["setter"] = setter
 
         buf = StringIO()
 
@@ -134,9 +129,10 @@ class TestBarrel(unittest.TestCase):
 
         up = Unpickler(StringIO(buf.getvalue()))
         new_ba = up.load()
-        
-        new_getter = new_ba.get_function("getter", locals())
-        new_setter = new_ba.get_function("setter", locals())
+
+        ba.use_globals(locals())
+        new_getter = new_ba["getter"]
+        new_setter = new_ba["setter"]
 
         # check the initial value of the new pair
         assert(new_getter() == 9)
@@ -152,7 +148,7 @@ class TestBarrel(unittest.TestCase):
 
         # and show that we haven't effected our new pair
         assert(new_getter() == 10)
-    
+
 
 #
 # The end.
