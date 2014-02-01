@@ -32,13 +32,12 @@ from types import BuiltinFunctionType, FunctionType, MethodType
 import new
 
 
-__all__ = [ "BarrelFunction", "BarrelMethod", "Barrel",
-            "RenameException" ]
+__all__ = [ "Barrel", "BarrelFunction", "BarrelMethod" ]
 
 
 class RenameException(Exception):
     """
-    Raised by Barrel.rename_function
+    Raised by NameBarrel.rename_function
     """
     pass
 
@@ -151,6 +150,14 @@ class BarrelMethod(BarrelFunction):
 
 
 class Barrel(object):
+
+    # TODO: this tries to do brining at the wrong time (at __setitem__
+    # rather than __getdata__), I need to fix that.  However, the
+    # __getitem__ still needs to be unbrining point, since we want to
+    # give the option to set globals before we unbrine anything.
+
+    # TODO: bring in some of the renaming features from the old
+    # NameBarrel version of this class.
 
     def __init__(self):
         self._cache = dict()
@@ -313,6 +320,9 @@ class NameBarrel(object):
 
 
     def __init__(self):
+        # Do not use.
+        assert(False)
+
         self.functions = dict()
 
         # only used for preventing recursion and duplicates in pickling
@@ -417,33 +427,6 @@ class NameBarrel(object):
 
         bfunc = self.brine_function(func)
         self.add_brined(bfunc, as_name=as_name)
-
-
-def barrel_from_globals(from_globals):
-
-    """ automatically create a barrel filled with the functions found
-    in the specified globals """
-
-    barrel = BrineBarrel()
-
-    for k,v in from_globals.items():
-        if isinstance(v, (FunctionType, MethodType)) and \
-           not isinstance(v, BuiltinFunctionType):
-
-            barrel.add_function(v, as_name=k)
-
-    return barrel
-
-
-def deploy_barrel(barrel, into_globals):
-
-    """ unbrines all the functions in the barrel and places them into
-    the given globals """
-
-    prep = dict(barrel.functions)
-    for k,v in prep.items():
-        prep[k] = v.get_function(globals)
-    into_globals.update(prep)
 
 
 #
