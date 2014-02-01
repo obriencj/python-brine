@@ -53,12 +53,13 @@ def brine(func):
     return BrineFunction(function=func)
 
 
-def unbrine(bfunc, with_globals):
+def unbrine(bfunc, with_globals=None):
 
     '''
     unwraps a function that had been pickled
     '''
 
+    glbls = globals() if with_globals is None else with_globals
     return bfunc.get(with_globals)
 
 

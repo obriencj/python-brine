@@ -127,7 +127,7 @@ class TestBarrel(unittest.TestCase):
         ba["setter"] = setter
 
         new_ba = pickle_unpickle(ba)
-        
+
         new_getter = new_ba["getter"]
         new_setter = new_ba["setter"]
 
@@ -185,7 +185,7 @@ class TestBarrel(unittest.TestCase):
         assert(getter_na2() == "A")
         assert(getter_nb2() == "B")
         assert(getter_nc2() == "C")
-        
+
         setter_na1("_A")
         setter_nb1("_B")
         setter_nc1("_C")

@@ -32,6 +32,13 @@ import new
 import unittest
 
 
+def pickle_unpickle(value):
+    buffer = StringIO()
+    Pickler(buffer).dump(value)
+    buffer = StringIO(buffer.getvalue())
+    return Unpickler(buffer).load()
+
+
 def make_adder(by_i=0):
     return lambda x=0: x+by_i
 
@@ -69,15 +76,8 @@ class TestAdderPickling(unittest.TestCase):
         # this is the function we'll be duplicating.
         func_a = make_adder(8)
 
-        buf = StringIO()
-
-        # pickle func_a
-        pi = Pickler(buf)
-        pi.dump(brine(func_a))
-
-        # unpickle func_b
-        up = Unpickler(StringIO(buf.getvalue()))
-        func_b = unbrine(up.load(), locals())
+        # run it through pickle/unpickle to duplicate it
+        func_b = unbrine(pickle_unpickle(brine(func_a)))
 
         self.assertEqual(func_a(), func_b())
         self.assertEqual(func_a(5), func_b(5))
