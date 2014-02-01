@@ -79,7 +79,7 @@ class BarrelFunction(BrineFunction):
 
 
     def _function_unnew(self, function):
-        self._barrel._cache[function] = self
+        self._barrel._putcache(function, self)
 
         ufunc = super(BarrelFunction, self)._function_unnew(function)
         ufunc[4] = tuple(imap(self._brine_cell, ufunc[4]))
@@ -106,7 +106,7 @@ class BarrelFunction(BrineFunction):
         # make sure the barrel only attempts to unbrine this function
         # once, so put our entry into the cache before attempting to
         # unbrine our cells in-place
-        self._barrel._cache[self] = func
+        self._barrel._putcache(self, func)
 
         # this is the necessary second-pass, which will go through the
         # newly generated function and will unbrine any cells. We need
@@ -154,6 +154,7 @@ class Barrel(object):
 
     def __init__(self):
         self._cache = dict()
+        self._vidcache = dict()
         self._brined = dict()
         self._with_globals = globals()
 
@@ -166,15 +167,24 @@ class Barrel(object):
     def __getitem__(self, key):
         if self._brined.has_key(key):
             val = self._brined.get(key)
-            return val.get(self._glbls)
+            return self._unbrine(self._glbls, val)
         else:
             raise KeyError(key)
+
+    
+    def _putcache(self, key, value):
+        self._cache[id(key)] = value
+        self._vidcache[id(key)] = key
+
+
+    def _getcache(self, key):
+        return self._cache.get(id(key))
 
 
     def get(self, key, default_val=None):
         if self._brined.has_key(key):
             val = self._brined.get(key)
-            return val.get(self._glbls)
+            return self._unbrine(self._glbls, val)
         else:
             return default_val
 
@@ -186,7 +196,7 @@ class Barrel(object):
     def iteritems(self):
         glbls = self._glbls
         brined = self._brined
-        return ((k,val.get(glbls)) for k,v in brined.iteritems())
+        return ((k,self._unbrine(glbls, v)) for k,v in brined.iteritems())
 
 
     def items(self):
@@ -202,9 +212,8 @@ class Barrel(object):
 
 
     def itervalues(self):
-        glbls = self._glbls
-        brined = self._brined
-        return (val.get(glbls) for val in brined.itervalues())
+        act = partial(self._unbrine, self._glbls)
+        return imap(act, self._brined.itervalues())
 
 
     def values(self):
@@ -217,6 +226,7 @@ class Barrel(object):
 
     def __setstate__(self, data):
         self._cache = dict()
+        self._vidcache = dict()
 
         brined = data[0]
         self._brined = brined
@@ -236,66 +246,60 @@ class Barrel(object):
 
     def _unbrine(self, with_globals, value):
         if isinstance(value, (BarrelFunction, BarrelMethod)):
-            ret = self._cache.get(value)
+            ret = self._getcache(value)
             if not ret:
-                ret = value.get_function(self, with_globals)
-                self._cache[value] = ret
-            return ret
+                ret = value.get(with_globals)
+                self._putcache(value, ret)
+            value = ret
 
         elif isinstance(value, (tuple,list,set)):
-            vid = id(value)
-            ret = self._cache.get(vid)
+            ret = self._getcache(value)
             if ret is None:
                 vt = type(value)
                 ub = partial(self._unbrine, with_globals)
                 ret = vt(imap(ub, iter(value)))
-                self._cache[vid] = ret
-            return ret
+                self._putcache(value, ret)
+            value = ret
 
         elif isinstance(value, dict):
-            vid = id(value)
-            ret = self._cache.get(vid)
+            ret = self._getcache(value)
             if ret is None:
-                ub = partial(self._unbrine, with_globals)
-                ret = dict(imap(ub, value.iteritems()))
-                self._cache[vid] = ret
-            return ret
+                ret = dict(self._unbrine(with_globals, value.items()))
+                self._putcache(value, ret)
+            value = ret
 
         return value
 
 
     def _brine(self, value):
         if isinstance(value, MethodType):
-            ret = self._cache.get(value)
+            ret = self._getcache(value)
             if not ret:
                 ret = BarrelMethod(self, value)
-                self._cache[value] = ret
-            return ret
+                self._putcache(value, ret)
+            value = ret
 
         elif isinstance(value, FunctionType):
-            ret = self._cache.get(value)
+            ret = self._getcache(value)
             if not ret:
                 ret = BarrelFunction(self, value)
-                self._cache[value] = ret
-            return ret
+                self._putcache(value, ret)
+            value = ret
 
         elif isinstance(value, (tuple,list,set)):
-            vid = id(value)
-            ret = self._cache.get(vid)
+            ret = self._getcache(value)
             if ret is None:
                 vt = type(value)
                 ret = vt(imap(self._brine, iter(value)))
-                self._cache[vid] = ret
-            return ret
+                self._putcache(value, ret)
+            value = ret
 
         elif isinstance(value, dict):
-            vid = id(value)
-            ret = self._cache.get(vid)
+            ret = self._getcache(value)
             if ret is None:
-                ret = dict(imap(self._brine, value.iteritems()))
-                self._cache[vid] = ret
-            return ret
-
+                ret = dict(self._brine(value.items()))
+                self._putcache(value, ret)
+            value = ret
         return value
 
 

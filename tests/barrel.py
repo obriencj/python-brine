@@ -58,6 +58,20 @@ def create_pair(default_val=None):
     return getter, setter
 
 
+def pickle_unpickle(value):
+    """
+    pickle value, then unpickle it and return the unpickled copy
+    """
+
+    buf = StringIO()
+    pi = Pickler(buf)
+    pi.dump(value)
+
+    buf = StringIO(buf.getvalue())
+    up = Unpickler(buf)
+    return up.load()
+
+
 class TestBarrel(unittest.TestCase):
 
     def test_anon_inner(self):
@@ -72,12 +86,7 @@ class TestBarrel(unittest.TestCase):
         ba = Barrel()
         ba["fives"] = fives
 
-        buf = StringIO()
-        pi = Pickler(buf)
-        pi.dump(ba)
-
-        up = Unpickler(StringIO(buf.getvalue()))
-        new_ba = up.load()
+        new_ba = pickle_unpickle(ba)
 
         new_fives = new_ba["fives"]
 
@@ -97,12 +106,7 @@ class TestBarrel(unittest.TestCase):
         ba = Barrel()
         ba["add_8"] = add_8
 
-        buf = StringIO()
-        pi = Pickler(buf)
-        pi.dump(ba)
-
-        up = Unpickler(StringIO(buf.getvalue()))
-        new_ba = up.load()
+        new_ba = pickle_unpickle(ba)
 
         new_add_8 = new_ba["add_8"]
 
@@ -122,13 +126,8 @@ class TestBarrel(unittest.TestCase):
         ba["getter"] = getter
         ba["setter"] = setter
 
-        buf = StringIO()
-        pi = Pickler(buf)
-        pi.dump(ba)
-
-        up = Unpickler(StringIO(buf.getvalue()))
-        new_ba = up.load()
-
+        new_ba = pickle_unpickle(ba)
+        
         new_getter = new_ba["getter"]
         new_setter = new_ba["setter"]
 
@@ -146,6 +145,66 @@ class TestBarrel(unittest.TestCase):
 
         # and show that we haven't effected our new pair
         assert(new_getter() == 10)
+
+
+    def test_contained_shared(self):
+        # test that pickling maintains uniqueness and that
+        # multiple versions of the same pairs/cells come
+        # out as the same pairs and cells
+
+        getter_a, setter_a = create_pair("A")
+        getter_b, setter_b = create_pair("B")
+        getter_c, setter_c = create_pair("C")
+
+        assert(getter_a() == "A")
+        assert(getter_b() == "B")
+        assert(getter_c() == "C")
+
+        ba = Barrel()
+        ba["pair_a"] = (getter_a, setter_a)
+        ba["pair_b"] = (getter_b, setter_b)
+        ba["pair_c"] = (getter_c, setter_c)
+        ba["pairs"] = { "a": [getter_a, setter_a],
+                        "b": [getter_b, setter_b],
+                        "c": [getter_c, setter_c] }
+
+        new_ba = pickle_unpickle(ba)
+
+        getter_na1, setter_na1 = new_ba["pair_a"]
+        getter_nb1, setter_nb1 = new_ba["pair_b"]
+        getter_nc1, setter_nc1 = new_ba["pair_c"]
+
+        newpairs = new_ba["pairs"]
+        getter_na2, setter_na2 = newpairs['a']
+        getter_nb2, setter_nb2 = newpairs['b']
+        getter_nc2, setter_nc2 = newpairs['c']
+
+        assert(getter_na1() == "A")
+        assert(getter_nb1() == "B")
+        assert(getter_nc1() == "C")
+        assert(getter_na2() == "A")
+        assert(getter_nb2() == "B")
+        assert(getter_nc2() == "C")
+        
+        setter_na1("_A")
+        setter_nb1("_B")
+        setter_nc1("_C")
+        assert(getter_na1() == "_A")
+        assert(getter_nb1() == "_B")
+        assert(getter_nc1() == "_C")
+        assert(getter_na2() == "_A")
+        assert(getter_nb2() == "_B")
+        assert(getter_nc2() == "_C")
+
+        setter_na2("A_")
+        setter_nb2("B_")
+        setter_nc2("C_")
+        assert(getter_na1() == "A_")
+        assert(getter_nb1() == "B_")
+        assert(getter_nc1() == "C_")
+        assert(getter_na2() == "A_")
+        assert(getter_nb2() == "B_")
+        assert(getter_nc2() == "C_")
 
 
 #
