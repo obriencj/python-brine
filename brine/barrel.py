@@ -23,7 +23,7 @@ license: LGPL v.3
 """
 
 
-from brine import BrineFunction, brine, unbrine
+from brine import BrineObject, BrineFunction, brine, unbrine
 from brine._cellwork import cell_get_value, cell_set_value, cell_from_value
 from functools import partial
 from itertools import imap
@@ -119,6 +119,9 @@ class BarrelFunction(BrineFunction):
 
 
 class BarrelMethod(BarrelFunction):
+
+    # TODO: make this into a subclass of BrineMethod instead, and
+    # don't actually pickle the code.
 
     """
     A brined bound method in a barrel.
@@ -252,7 +255,7 @@ class Barrel(object):
 
 
     def _unbrine(self, with_globals, value):
-        if isinstance(value, (BarrelFunction, BarrelMethod)):
+        if isinstance(value, BrineObject):
             ret = self._getcache(value)
             if not ret:
                 ret = value.get(with_globals)

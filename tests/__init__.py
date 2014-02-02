@@ -99,17 +99,22 @@ class TestMethod(unittest.TestCase):
     def test_method_pickling(self):
         o = Obj("Hello World")
 
+        # snag bound methods from our object
         getter = o.get_value
         setter = o.set_value
 
+        # show that they work as expected
         assert(getter() == "Hello World")
         setter("Tacos")
         assert(getter() == "Tacos")
 
+        # now pickle/unpickle to create duplicates of the original
+        # bound methods
         tmp = pickle_unpickle([brine(getter), brine(setter)])
-        bgetter = unbrine(tmp[0])
-        bsetter = unbrine(tmp[1])
+        bgetter = unbrine(tmp[0], with_globals={})
+        bsetter = unbrine(tmp[1], with_globals={})
 
+        # show that these duplicates successfully pickled the
         assert(bgetter() == "Tacos")
         bsetter("Hello World")
         assert(bgetter() == "Hello World")

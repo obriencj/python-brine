@@ -33,6 +33,7 @@ licelse: LGPL v.3
 
 
 # CellType, cell_get_value, cell_from_value, cell_set_value
+from abc import ABCMeta, abstractmethod
 from brine._cellwork import *
 from types import BuiltinFunctionType, FunctionType, MethodType, CodeType
 
@@ -40,7 +41,7 @@ import copy_reg
 import new
 
 
-__all__ = [ "BrineFunction", "BrineMethod",
+__all__ = [ "BrineObject", "BrineFunction", "BrineMethod",
             "brine", "unbrine",
             "code_unnew", "function_unnew", ]
 
@@ -54,9 +55,9 @@ def brine(func):
     if isinstance(func, BuiltinFunctionType):
         return func
     elif isinstance(func, MethodType):
-        return BrineMethod(function=func)
+        return BrineMethod(func)
     elif isinstance(func, FunctionType):
-        return BrineFunction(function=func)
+        return BrineFunction(func)
     else:
         return func
 
@@ -68,7 +69,7 @@ def unbrine(bfunc, with_globals=None):
     """
 
     glbls = globals() if with_globals is None else with_globals
-    if isinstance(bfunc, BrineFunction):
+    if isinstance(bfunc, BrineObject):
         return bfunc.get(with_globals)
     else:
         return bfunc
@@ -111,6 +112,23 @@ def function_unnew(func):
              func.func_closure ]
 
 
+class BrineObject(object):
+
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def __getstate__(self):
+        pass
+
+    @abstractmethod
+    def __setstate__(self, data):
+        pass
+
+    @abstractmethod
+    def get(self, with_globals=None):
+        pass
+
+
 # A function object needs to be brined before it can be pickled, and
 # unbrined after it's unpickled. We need to do this because pickle has
 # #some default behavior for pickling types.FunctionType which we do
@@ -119,7 +137,7 @@ def function_unnew(func):
 # unpickling
 
 
-class BrineFunction(object):
+class BrineFunction(BrineObject):
 
     """
     wraps a function so that it may be pickled. For the most part
@@ -264,35 +282,38 @@ class BrineFunction(object):
             uncode[13] = tuple(swap(n) for n in cellvars)
 
 
-class BrineMethod(BrineFunction):
+class BrineMethod(BrineObject):
 
     """
-    Wraps a bound method so that it can be pickled.
+    Wraps a bound method so that it can be pickled. By default pickle
+    refuses to operate on bound instance method object. This wrapper
+    will still require that the object instance supports pickling,
+    which in turn requires that the class be defined at the top level.
     """
 
-    def __init__(self, function=None):
-        self.im_self = None
-        super(BrineMethod, self).__init__(function=function)
+    def __init__(self, boundmethod=None):
+        self._im_self = None
+        self._funcname = None
+        if boundmethod is not None:
+            self.set(boundmethod)
 
 
     def set(self, method):
-        super(BrineMethod, self).set(method.im_func)
-        self.im_self = method.im_self
+        self._im_self = method.im_self
+        self._funcname = method.im_func.__name__
 
 
     def get(self, with_globals):
-        func = super(BrineMethod, self).get(with_globals)
-        inst = self.im_self
-        return MethodType(func, inst, inst.__class__)
+        return getattr(self._im_self, self._funcname)
 
 
     def __getstate__(self):
-        return (self.im_self,) + super(BrineMethod, self).__getstate__()
+        return (self._im_self, self._funcname)
 
 
     def __setstate__(self, state):
-        self.im_self = state[0]
-        super(BrineMethod, self).__setstate__(state[1:])
+        self._im_self = state[0]
+        self._funcname = state[1]
 
 
 # let's give the pickle module knowledge of how to load and dump Cell
