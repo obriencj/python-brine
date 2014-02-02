@@ -64,8 +64,15 @@ def pickle_unpickle(value):
     return Unpickler(buffer).load()
 ```
 
-To prepare a function for pickling, it must first be 'brined' which is
-to say, wrapped in a class that follows the pickling API.
+### Anonymous or inner functions
+
+Pickle normally refuses to serialize a function that is not defined in
+the top level. The `BrineFunction` class wraps a function in a manner
+that supports pickling, and will actually put the code and cells into
+the serialization stream.
+
+We can use `brine.brine` to wrap a FunctionType instance, and
+`brine.unbrine` to unwrap it again.
 
 ```python
 from brine import brine, unbrine
@@ -74,6 +81,8 @@ from brine import brine, unbrine
 myfun = lambda x: ("Why hello there, %s" % str(x))
 myfun("Godzilla") # ==> "Why hello there, Godzilla"
 
+# if we tried this without the brine/unbrine wrapping, we'd get a
+# pickle.PicklingError raised all up in our biz
 myfun_redux = unbrine(pickle_unpickle(brine(myfun)))
 
 # this is now a copy of the original
@@ -91,6 +100,48 @@ myfun() # ==> "Why hello there, Orion"
 
 myfun_redux = unbrine(pickle_unpickle(brine(myfun)))
 myfun_redux() # ==> "Why hello there, Orion"
+```
+
+### Bound instance methods
+
+Pickle normally refuses to serialize bound instance methods. This is
+somewhat odd, because it can be done by name. The `BrineMethod` class
+can be used to wrap a bound instance method. Note that because a bound
+method needs to be associated with a object instance, that instance
+will also need to support pickling (and hence, likely need to be
+defined at the top level).
+
+BrineMethod is name-based; it doesn't try to pickle underlying class
+code.
+
+```python
+# setup a simple class for us to work over
+class Obj(object):
+    def __init__(self, value=None):
+	    self.value = value
+	def get_value(self):
+	    return self.value
+	def set_value(self, value):
+	    self.value = value
+
+inst = Obj("Tacos")
+getter = inst.get_value
+setter = inst.set_value
+
+setter("Carrots")
+getter() # ==> "Carrots"
+
+# a little dance to brine and unbrine both bound methods
+tmp = (getter, setter)
+tmp = unbrine(pickle_unpickle(brine(tmp)))
+n_getter, n_setter = tmp
+
+n_getter() # ==> "Carrots"
+n_setter("Sandwich")
+n_getter() # ==> "Sandwich"
+
+# the original is unaffected
+getter() # ==> "Carrots"
 ```
 
 

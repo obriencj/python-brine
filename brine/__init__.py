@@ -32,10 +32,10 @@ licelse: LGPL v.3
 """
 
 
-# CellType, cell_get_value, cell_from_value, cell_set_value
 from abc import ABCMeta, abstractmethod
-from brine._cellwork import *
+from functools import partial
 from types import BuiltinFunctionType, FunctionType, MethodType, CodeType
+from ._cellwork import CellType, cell_get_value, cell_from_value
 
 import copy_reg
 import new
@@ -46,33 +46,57 @@ __all__ = [ "BrineObject", "BrineFunction", "BrineMethod",
             "code_unnew", "function_unnew", ]
 
 
-def brine(func):
+def brine(value):
 
     """
-    wraps a function so that it may be pickled
+    Wraps a value so that it may be pickled. Funcions are wrapped in a
+    BrineFunction; methods are wrapped in a BrineMethod; lists,
+    tuples, and sets have their items brined; dictionaries have their
+    values (but not keys) brined. Builtin functions and all other
+    types are returned unchanged.
+
+    Note that there is no de-duplication or caching -- ie: if the same
+    function is in a list multiple times, each will be wrapped
+    individually and as a result will be duplicated when unbrined. For
+    complex situations like this, use a Barrel from the brine.barrel
+    module.
     """
 
-    if isinstance(func, BuiltinFunctionType):
-        return func
-    elif isinstance(func, MethodType):
-        return BrineMethod(func)
-    elif isinstance(func, FunctionType):
-        return BrineFunction(func)
+    if isinstance(value, BuiltinFunctionType):
+        return value
+    elif isinstance(value, MethodType):
+        return BrineMethod(value)
+    elif isinstance(value, FunctionType):
+        return BrineFunction(value)
+    elif isinstance(value, (list, tuple, set)):
+        # create a duplicate of the collection with brined internals
+        ty = type(value)
+        return ty(brine(i) for i in iter(value))
+    elif isinstance(value, dict):
+        items = value.items()
+        return dict((key,brine(val)) for key,val in items)
     else:
         return func
 
 
-def unbrine(bfunc, with_globals=None):
+def unbrine(value, with_globals=None):
 
     """
-    unwraps a function that had been pickled
+    Unwraps a value that had been pickled via the brine function
     """
 
     glbls = globals() if with_globals is None else with_globals
-    if isinstance(bfunc, BrineObject):
-        return bfunc.get(with_globals)
+
+    if isinstance(value, BrineObject):
+        return value.get(glbls)
+    elif isinstance(value, (list, tuple, set)):
+        ty = type(value)
+        return ty(unbrine(i, glbls) for i in iter(value))
+    elif isinstance(value, dict):
+        items = value.items()
+        return dict((key,unbrine(val, glbls)) for key,val in items)
     else:
-        return bfunc
+        return value
 
 
 def code_unnew(code):
