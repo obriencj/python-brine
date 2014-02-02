@@ -111,8 +111,8 @@ class TestMethod(unittest.TestCase):
         # now pickle/unpickle to create duplicates of the original
         # bound methods
         tmp = pickle_unpickle([brine(getter), brine(setter)])
-        bgetter = unbrine(tmp[0], with_globals={})
-        bsetter = unbrine(tmp[1], with_globals={})
+        bgetter = unbrine(tmp[0])
+        bsetter = unbrine(tmp[1])
 
         # show that these duplicates successfully pickled the
         assert(bgetter() == "Tacos")
