@@ -22,7 +22,6 @@ author: Christopher O'Brien  <obriencj@gmail.com>
 """
 
 
-
 from brine import function_unnew, code_unnew
 from brine import brine, unbrine
 from cStringIO import StringIO
@@ -43,9 +42,9 @@ def make_adder(by_i=0):
     return lambda x=0: x+by_i
 
 
-class TestAdderDuplication(unittest.TestCase):
+class TestUnnew(unittest.TestCase):
 
-    def testAdderDuplication(self):
+    def test_adder_duplication(self):
         func_a = make_adder(8)
         func_b = new.function(*function_unnew(func_a))
 
@@ -53,7 +52,7 @@ class TestAdderDuplication(unittest.TestCase):
         self.assertEqual(func_a(5), func_b(5))
 
 
-    def testAdderCodeDuplication(self):
+    def test_adder_code_duplication(self):
         func_a = make_adder(8)
 
         # get the guts of the function and its code
@@ -70,8 +69,9 @@ class TestAdderDuplication(unittest.TestCase):
         self.assertEqual(func_a(5), func_b(5))
 
 
-class TestAdderPickling(unittest.TestCase):
-    def testPickling(self):
+class TestFunction(unittest.TestCase):
+
+    def test_function_pickling(self):
 
         # this is the function we'll be duplicating.
         func_a = make_adder(8)
@@ -81,6 +81,40 @@ class TestAdderPickling(unittest.TestCase):
 
         self.assertEqual(func_a(), func_b())
         self.assertEqual(func_a(5), func_b(5))
+
+
+class Obj(object):
+    # This is just a sample class we can use for bound method pickling
+    # tests
+    def __init__(self, value):
+        self.value = value
+    def set_value(self, value):
+        self.value = value
+    def get_value(self):
+        return self.value
+
+
+class TestMethod(unittest.TestCase):
+
+    def test_method_pickling(self):
+        o = Obj("Hello World")
+
+        getter = o.get_value
+        setter = o.set_value
+
+        assert(getter() == "Hello World")
+        setter("Tacos")
+        assert(getter() == "Tacos")
+
+        tmp = pickle_unpickle([brine(getter), brine(setter)])
+        bgetter = unbrine(tmp[0])
+        bsetter = unbrine(tmp[1])
+
+        assert(bgetter() == "Tacos")
+        bsetter("Hello World")
+        assert(bgetter() == "Hello World")
+
+        assert(getter() == "Tacos")
 
 
 #

@@ -34,33 +34,44 @@ licelse: LGPL v.3
 
 # CellType, cell_get_value, cell_from_value, cell_set_value
 from brine._cellwork import *
+from types import BuiltinFunctionType, FunctionType, MethodType, CodeType
 
 import copy_reg
 import new
-import types
 
 
-__all__ = [ "BrineFunction",
-            "brine", "unbrine" ]
+__all__ = [ "BrineFunction", "BrineMethod",
+            "brine", "unbrine",
+            "code_unnew", "function_unnew", ]
 
 
 def brine(func):
 
-    '''
+    """
     wraps a function so that it may be pickled
-    '''
+    """
 
-    return BrineFunction(function=func)
+    if isinstance(func, BuiltinFunctionType):
+        return func
+    elif isinstance(func, MethodType):
+        return BrineMethod(function=func)
+    elif isinstance(func, FunctionType):
+        return BrineFunction(function=func)
+    else:
+        return func
 
 
 def unbrine(bfunc, with_globals=None):
 
-    '''
+    """
     unwraps a function that had been pickled
-    '''
+    """
 
     glbls = globals() if with_globals is None else with_globals
-    return bfunc.get(with_globals)
+    if isinstance(bfunc, BrineFunction):
+        return bfunc.get(with_globals)
+    else:
+        return bfunc
 
 
 def code_unnew(code):
@@ -115,7 +126,6 @@ class BrineFunction(object):
     you'll want to use brine_function and unbrine_function instead of
     instantiating or accessing this class directly
     """
-
 
     def __init__(self, function=None):
         self._unfunc = ()
@@ -254,6 +264,37 @@ class BrineFunction(object):
             uncode[13] = tuple(swap(n) for n in cellvars)
 
 
+class BrineMethod(BrineFunction):
+
+    """
+    Wraps a bound method so that it can be pickled.
+    """
+
+    def __init__(self, function=None):
+        self.im_self = None
+        super(BrineMethod, self).__init__(function=function)
+
+
+    def set(self, method):
+        super(BrineMethod, self).set(method.im_func)
+        self.im_self = method.im_self
+
+
+    def get(self, with_globals):
+        func = super(BrineMethod, self).get(with_globals)
+        inst = self.im_self
+        return MethodType(func, inst, inst.__class__)
+
+
+    def __getstate__(self):
+        return (self.im_self,) + super(BrineMethod, self).__getstate__()
+
+
+    def __setstate__(self, state):
+        self.im_self = state[0]
+        super(BrineMethod, self).__setstate__(state[1:])
+
+
 # let's give the pickle module knowledge of how to load and dump Cell
 # and Code objects
 
@@ -290,7 +331,7 @@ def _unpickle_code(*ncode):
 
 
 def reg_code_pickler():
-    copy_reg.pickle(types.CodeType, _pickle_code, _unpickle_code)
+    copy_reg.pickle(CodeType, _pickle_code, _unpickle_code)
 
 
 # register when the module is loaded
