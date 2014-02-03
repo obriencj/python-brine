@@ -136,7 +136,7 @@ def function_unnew(func):
              func.func_closure ]
 
 
-class BrineObject(object):
+class BrineObject(object): # pragma: no cover
 
     __metaclass__ = ABCMeta
 
