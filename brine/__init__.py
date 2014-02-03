@@ -137,6 +137,10 @@ def function_unnew(func):
 
 class BrineObject(object): # pragma: no cover
 
+    """
+    Interface that a Brined value should provide
+    """
+
     __metaclass__ = ABCMeta
 
     @abstractmethod
