@@ -31,13 +31,6 @@ import new
 import unittest
 
 
-def pickle_unpickle(value):
-    buffer = StringIO()
-    Pickler(buffer).dump(value)
-    buffer = StringIO(buffer.getvalue())
-    return Unpickler(buffer).load()
-
-
 class Obj(object):
     # This is just a sample class we can use for bound method pickling
     # tests
@@ -47,6 +40,13 @@ class Obj(object):
         return self.value
     def set_value(self, value):
         self.value = value
+
+
+def pickle_unpickle(value):
+    buffer = StringIO()
+    Pickler(buffer).dump(value)
+    buffer = StringIO(buffer.getvalue())
+    return Unpickler(buffer).load()
 
 
 def make_pair(value):
@@ -90,6 +90,25 @@ class TestUnnew(unittest.TestCase):
 
 
 class TestBrine(unittest.TestCase):
+
+
+    def test_brine_other(self):
+        # see what happens when we encounter un-brine-able types
+        data_built = ( map, zip, globals )
+        data_types = ( type, tuple, int )
+        data_stuff = (501, 5.01, "Hello", set([1, 3, 5, 7]))
+
+        data = [data_built, data_types, data_stuff]
+        ndata = unbrine(pickle_unpickle(brine(data)))
+
+        ndata_built = ndata[0]
+        ndata_types = ndata[1]
+        ndata_stuff = ndata[2]
+
+        assert(data_built == ndata_built)
+        assert(data_types == ndata_types)
+        assert(data_stuff == ndata_stuff)
+
 
     def test_brine_function(self):
 
@@ -162,7 +181,7 @@ class TestBrine(unittest.TestCase):
         assert(getter() == "Tacos")
 
         # now pickle/unpickle to create duplicates of the original
-        # bound methods
+        # functions
         tmp = [getter, setter]
         tmp = unbrine(pickle_unpickle(brine(tmp)))
         bgetter, bsetter = tmp
