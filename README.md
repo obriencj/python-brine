@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/obriencj/python-brine.png?branch=master)](https://travis-ci.org/obriencj/python-brine)
+[![Coverage Status](https://coveralls.io/repos/obriencj/python-brine/badge.png?branch=master)](https://coveralls.io/r/obriencj/python-brine?branch=master)
+
 # Overview of python-brine
 
 Brine is a [Python] module that adds support for the "true" pickling

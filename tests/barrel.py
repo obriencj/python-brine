@@ -247,8 +247,10 @@ class TestBarrel(unittest.TestCase):
         self.assertEqual(ba.keys(), [])
         self.assertEqual(ba.values(), [])
 
-        with self.assertRaises(KeyError):
-            ba["Hello"]
+        # the managed interface for assertRaises isn't added until
+        # Python 2.7, and we try to support 2.6
+        foo = lambda: ba["Hello"]
+        self.assertRaises(KeyError, foo)
 
         ba.clear()
         self.assertSequenceEqual(list(iter(ba)), [])
@@ -319,8 +321,11 @@ class TestBarrel(unittest.TestCase):
         # however with no globals, the 'map' builtin won't be found,
         # and so trying to call add_8_all will raise a NameError
         new_add_8_all = new_ba["add_8_all"]
-        with self.assertRaises(NameError):
-            res = new_add_8_all([1, 2, 3, 4])
+
+        # the 'with' support on assertRaises isn't added until 2.7 and
+        # we try to support 2.6
+        foo = lambda: new_add_8_all([1, 2, 3, 4])
+        self.assertRaises(NameError, foo)
 
         new_ba.reset()
         new_ba.use_globals()
