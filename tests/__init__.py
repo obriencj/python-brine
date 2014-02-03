@@ -22,12 +22,12 @@ author: Christopher O'Brien  <obriencj@gmail.com>
 """
 
 
-from brine import function_unnew, code_unnew
+from brine import function_unnew, function_new
+from brine import code_unnew, code_new
 from brine import brine, unbrine
 from cStringIO import StringIO
 from pickle import Pickler, Unpickler
 
-import new
 import unittest
 
 
@@ -66,7 +66,7 @@ class TestUnnew(unittest.TestCase):
 
     def test_adder_duplication(self):
         func_a = make_adder(8)
-        func_b = new.function(*function_unnew(func_a))
+        func_b = function_new(*function_unnew(func_a))
 
         self.assertEqual(func_a(), func_b())
         self.assertEqual(func_a(5), func_b(5))
@@ -80,10 +80,10 @@ class TestUnnew(unittest.TestCase):
         uncode = code_unnew(unfunc[0])
 
         # make a new code from the guts of the original code
-        unfunc[0] = new.code(*uncode)
+        unfunc[0] = code_new(*uncode)
 
         # make a new function with the new code
-        func_b = new.function(*unfunc)
+        func_b = function_new(*unfunc)
 
         self.assertEqual(func_a(), func_b())
         self.assertEqual(func_a(5), func_b(5))

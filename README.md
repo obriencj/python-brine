@@ -12,16 +12,15 @@ defined at the top level.
 Brine provides a way to pickle the actual underlying code of a
 function, including any captured cells, and then restore them again.
 
-Brine also provides Barrel, which allows shared resources to be
-pickled while referring to each other (eg: two inner functions sharing
-the same cell).
+Brine also provides Barrel, which is a dictionary-like interface for
+brining multiple functions. It allows shared resources to be pickled
+while referring to each other (eg: mutually recursive inner
+functions).
 
 I've set the version to 0.9.0 and will not be promising any API
 stability until 1.0.0 is reached. That said, I do not believe it is
-too terribly far off. I have a few bits and pieces I want to test and
-re-evaluate (considering changing barrel to use arbitrary keys rather
-than a name). Until such time as I set the API in stone, this is just
-for mucking about.
+too terribly far off. Until such time as I set the API in stone, avoid
+depending on this module for anything serious.
 
 * [python-brine on GitHub][github]
 * python-brine not on PyPI until version 1.0.0

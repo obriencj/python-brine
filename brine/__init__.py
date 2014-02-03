@@ -19,10 +19,13 @@ Provides a simple way to pickle/unpickle function objects.
 To truly pickle a function we need to be able to duplicate its code
 and its closures. By default, pickle will simply store the function's
 name, and then attempt to associate that with a function when
-unpickling. In order to mark a function for actual storage, use the
-`brine` function to create a BrineFunction, which may then be pickled.
-Later, after unpickling the BrineFunction, call `unbrine` to get a new
-copy of the original function
+unpickling. This of course fails when the function is anonymous or not
+otherwise defined at the top level.
+
+In order to mark a function for actual storage, use the `brine`
+function to create a BrineFunction instnace, which may then be
+pickled. Later, after unpickling the BrineFunction, call `unbrine` to
+get a new copy of the original function
 
 See the brine.barrel module in order to pickle recursive functions,
 mutually recursive functions, and the like.
@@ -42,7 +45,8 @@ import new
 
 __all__ = [ "BrineObject", "BrineFunction", "BrineMethod",
             "brine", "unbrine",
-            "code_unnew", "function_unnew", ]
+            "code_unnew", "code_new",
+            "function_unnew", "function_new" ]
 
 
 def brine(value):
@@ -81,7 +85,8 @@ def brine(value):
 def unbrine(value, with_globals=None):
 
     """
-    Unwraps a value that had been pickled via the brine function
+    Returns an unwrapped duplicate of a value that had been wrapped
+    via the brine function.
     """
 
     glbls = globals() if with_globals is None else with_globals
@@ -101,7 +106,7 @@ def unbrine(value, with_globals=None):
 def code_unnew(code):
 
     """
-    returns the necessary arguments for use in new.code to create an
+    returns the necessary arguments for use in code_new to create an
     identical but separate code block
     """
 
@@ -121,10 +126,21 @@ def code_unnew(code):
              code.co_cellvars ]
 
 
+def code_new(argcount, nlocals, stacksize, flags, code, consts,
+             names, varnames, filename, name, firstlineno, lnotab,
+             freevars, cellvars):
+
+    """ returns a new code instance """
+
+    return new.code(argcount, nlocals, stacksize, flags, code,
+                    consts, names, varnames, filename, name,
+                    firstlineno, lnotab, freevars, cellvars)
+
+
 def function_unnew(func):
 
     """
-    returns the necessary arguments for use in new.function to create
+    returns the necessary arguments for use in function_new to create
     an identical but separate function
     """
 
@@ -133,6 +149,16 @@ def function_unnew(func):
              func.func_name,
              func.func_defaults,
              func.func_closure ]
+
+
+def function_new(code, with_globals, name, defaults, closure):
+
+    """
+    returns a new function instance from the given code, closures,
+    etc.
+    """
+
+    return new.function(code, with_globals, name, defaults, closure)
 
 
 class BrineObject(object): # pragma: no cover
@@ -158,7 +184,7 @@ class BrineObject(object): # pragma: no cover
 
 # A function object needs to be brined before it can be pickled, and
 # unbrined after it's unpickled. We need to do this because pickle has
-# #some default behavior for pickling types.FunctionType which we do
+# some default behavior for pickling types.FunctionType which we do
 # not want to break. Therefore, we will simply wrap any Function
 # instances in BrinedFunction before pickling, and unwap them after
 # unpickling
@@ -167,9 +193,9 @@ class BrineObject(object): # pragma: no cover
 class BrineFunction(BrineObject):
 
     """
-    wraps a function so that it may be pickled. For the most part
-    you'll want to use brine_function and unbrine_function instead of
-    instantiating or accessing this class directly
+    Wraps a function so that it may be pickled. For the most part
+    you'll want to use the brine and unbrine functions from this
+    module rather than instantiating or accessing this class directly
     """
 
     def __init__(self, function=None):
@@ -236,11 +262,11 @@ class BrineFunction(BrineObject):
     def _function_new(self, with_globals, ufunc):
         ufunc[0] = self._code_new(with_globals, list(ufunc[0]))
         ufunc[1] = with_globals
-        return new.function(*ufunc)
+        return function_new(*ufunc)
 
 
     def _code_new(self, with_globals, uncode):
-        return new.code(*uncode)
+        return code_new(*uncode)
 
 
 class BrineMethod(BrineObject):
@@ -250,6 +276,9 @@ class BrineMethod(BrineObject):
     refuses to operate on bound instance method object. This wrapper
     will still require that the object instance supports pickling,
     which in turn requires that the class be defined at the top level.
+    As with the BrineFunction class, it is better to use the brine and
+    unbrine functions from this module rather than to instantiate or
+    access this class directly.
     """
 
     def __init__(self, boundmethod=None):
