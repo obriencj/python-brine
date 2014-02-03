@@ -238,6 +238,22 @@ class Barrel(object):
         self._glbls = globals() if glbls is None else glbls
 
 
+    def reset(self):
+
+        """
+        Clears the internal caching, meaning any future sets or gets from
+        this Barrel will cause full brining or unbrining rather than
+        returning an already computed value.
+
+        If you retrieved a value from this barrel and want to load a
+        new copy (possibly with different globals), calling reset() is
+        a way to achieve such.
+        """
+
+        self._cache.clear()
+        self._vidcache.clear()
+
+
     def _putcache(self, key, value):
         self._cache[id(key)] = value
         self._vidcache[id(key)] = key
