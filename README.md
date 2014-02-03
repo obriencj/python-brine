@@ -42,7 +42,7 @@ for mucking about.
 
 This module uses setuptools, so simply run
 
-```
+```bash
 python setup.py install
 ```
 
@@ -143,6 +143,29 @@ n_getter() # ==> "Sandwich"
 # the original is unaffected
 getter() # ==> "Carrots"
 ```
+
+
+## Unit tests
+
+I tried for 100% code coverage from tests, and at the time of this
+writing I've achieved it. That said, my test cases are pretty ugly and
+commingled. You can run the tests via
+
+```bash
+python setup.py test
+```
+
+I've determined code coverage by use of [coverage.py], invoked as
+
+```bash
+# generates coverage data in .coverage
+coverage run --source=brine/,tests/ ./setup.py test
+
+# creates an html report from the above in htmlcov/index.html
+coverage html
+```
+
+[coverage.py]: http://nedbatchelder.com/code/coverage/
 
 
 ## Contact

@@ -13,3 +13,4 @@ build
 dist
 htmlcov
 tmp
+coverage.xml
