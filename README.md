@@ -159,7 +159,7 @@ I've determined code coverage by use of [coverage.py], invoked as
 
 ```bash
 # generates coverage data in .coverage
-coverage run --source=brine/,tests/ ./setup.py test
+coverage run --source=brine setup.py test
 
 # creates an html report from the above in htmlcov/index.html
 coverage html
