@@ -29,8 +29,6 @@ from functools import partial
 from itertools import imap
 from types import BuiltinFunctionType, FunctionType, MethodType
 
-import new
-
 
 __all__ = [ "Barrel", "BarrelFunction", "BarrelMethod" ]
 
