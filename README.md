@@ -1,7 +1,7 @@
+# Overview of python-brine
+
 [![Build Status](https://travis-ci.org/obriencj/python-brine.png?branch=master)](https://travis-ci.org/obriencj/python-brine)
 [![Coverage Status](https://coveralls.io/repos/obriencj/python-brine/badge.png?branch=master)](https://coveralls.io/r/obriencj/python-brine?branch=master)
-
-# Overview of python-brine
 
 Brine is a [Python] module that adds support for the "true" pickling
 of functions. The default behavior of the [pickle] library is to
@@ -148,17 +148,17 @@ getter() # ==> "Carrots"
 ```
 
 
-## Unit tests
+## Unit testing
 
-I tried for 100% code coverage from tests, and at the time of this
-writing I've achieved it. That said, my test cases are pretty ugly and
-commingled. You can run the tests via
+I've setup [travis-ci] and [coveralls.io] for this project, so tests
+are run automatically, and coverage is computed then. However, if
+you'd like to run the tests manually, simply invoke them via
 
 ```bash
 python setup.py test
 ```
 
-I've determined code coverage by use of [coverage.py], invoked as
+You may check code coverage by use of [coverage.py], invoked as
 
 ```bash
 # generates coverage data in .coverage
@@ -168,6 +168,8 @@ coverage run --source=brine setup.py test
 coverage html
 ```
 
+[travis-ci]: https://travis-ci.org
+[coveralls.io]: https://coveralls.io
 [coverage.py]: http://nedbatchelder.com/code/coverage/
 
 
