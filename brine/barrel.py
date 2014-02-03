@@ -23,7 +23,8 @@ license: LGPL v.3
 """
 
 
-from brine import BrineObject, BrineFunction, brine, unbrine
+from brine import BrineObject, BrineFunction, BrineMethod
+from brine import brine, unbrine
 from brine._cellwork import cell_get_value, cell_set_value, cell_from_value
 from functools import partial
 from itertools import imap
@@ -118,38 +119,15 @@ class BarrelFunction(BrineFunction):
         return func
 
 
-class BarrelMethod(BarrelFunction):
-
-    # TODO: make this into a subclass of BrineMethod instead, and
-    # don't actually pickle the code.
+class BarrelMethod(BrineMethod):
 
     """
     A brined bound method in a barrel.
     """
 
-    def __init__(self, function=None):
-        self.im_self = None
-        super(BarrelMethod, self).__init__(function=function)
-
-
-    def set(self, method):
-        super(BarrelMethod, self).set(method.im_func)
-        self.im_self = method.im_self
-
-
-    def get(self, with_globals):
-        func = super(BarrelMethod, self).get(with_globals)
-        inst = self.im_self
-        return MethodType(func, inst, inst.__class__)
-
-
-    def __getstate__(self):
-        return (self.im_self,) + super(BarrelMethod, self).__getstate__()
-
-
-    def __setstate__(self, state):
-        self.im_self = state[0]
-        super(BarrelMethod, self).__setstate__(state[1:])
+    def __init__(self, barrel, boundmethod):
+        self._barrel = barrel
+        super(self, BarrelMethod).__init__(boundmethod)
 
 
 class Barrel(object):
@@ -181,7 +159,7 @@ class Barrel(object):
         else:
             raise KeyError(key)
 
-    
+
     def _putcache(self, key, value):
         self._cache[id(key)] = value
         self._vidcache[id(key)] = key
