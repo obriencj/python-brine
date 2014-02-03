@@ -14,12 +14,11 @@
 
 
 """
-
-Provides a way to Brine a number of interrelated functions, using a Barrel
+Provides a way to Brine a number of interrelated functions, using a
+Barrel
 
 author: Christopher O'Brien  <obriencj@gmail.com>
 license: LGPL v.3
-
 """
 
 
@@ -34,13 +33,6 @@ import new
 
 
 __all__ = [ "Barrel", "BarrelFunction", "BarrelMethod" ]
-
-
-class RenameException(Exception):
-    """
-    Raised by NameBarrel.rename_function
-    """
-    pass
 
 
 class BarrelFunction(BrineFunction):
@@ -74,7 +66,7 @@ class BarrelFunction(BrineFunction):
 
     def _unbrine_cell(self, with_globals, cell):
         val = cell_get_value(cell)
-        ubval = self._barrel._unbrine(with_globals, val)
+        ubval = self._barrel._unbrine(val)
         cell_set_value(cell, ubval)
 
 
@@ -82,7 +74,8 @@ class BarrelFunction(BrineFunction):
         self._barrel._putcache(function, self)
 
         ufunc = super(BarrelFunction, self)._function_unnew(function)
-        ufunc[4] = tuple(imap(self._brine_cell, ufunc[4]))
+        if ufunc[4] is not None:
+            ufunc[4] = tuple(imap(self._brine_cell, ufunc[4]))
         return ufunc
 
 
@@ -93,10 +86,7 @@ class BarrelFunction(BrineFunction):
 
 
     def _code_new(self, with_globals, ucode):
-
-        ub = partial(self._barrel._unbrine, with_globals)
-        ucode[5] = tuple(imap(ub, ucode[5]))
-
+        ucode[5] = tuple(imap(self._barrel._unbrine, ucode[5]))
         return super(BarrelFunction, self)._code_new(with_globals, ucode)
 
 
@@ -113,8 +103,9 @@ class BarrelFunction(BrineFunction):
         # to do this in a second pass because it's possible that one
         # of the cells will want to be the same function that we've
         # just unbrined
-        ub = partial(self._unbrine_cell, with_globals)
-        ufunc[4] = tuple(imap(ub, ufunc[4]))
+        if ufunc[4] is not None:
+            ub = partial(self._unbrine_cell, with_globals)
+            ufunc[4] = tuple(imap(ub, ufunc[4]))
 
         return func
 
@@ -127,10 +118,15 @@ class BarrelMethod(BrineMethod):
 
     def __init__(self, barrel, boundmethod):
         self._barrel = barrel
-        super(self, BarrelMethod).__init__(boundmethod)
+        super(BarrelMethod, self).__init__(boundmethod)
 
 
 class Barrel(object):
+
+    """
+    A dict-like mapping supporting automatic brining of contained
+    values
+    """
 
     # TODO: this tries to do brining at the wrong time (at __setitem__
     # rather than __getdata__), I need to fix that.  However, the
@@ -144,8 +140,10 @@ class Barrel(object):
         self._cache = dict()
         self._vidcache = dict()
         self._brined = dict()
-        self._with_globals = globals()
+        self._glbls = globals()
 
+
+    #  == dict API ==
 
     def __setitem__(self, key, val):
         val = self._brine(val)
@@ -155,36 +153,30 @@ class Barrel(object):
     def __getitem__(self, key):
         if self._brined.has_key(key):
             val = self._brined.get(key)
-            return self._unbrine(self._glbls, val)
+            return self._unbrine(val)
         else:
             raise KeyError(key)
 
 
-    def _putcache(self, key, value):
-        self._cache[id(key)] = value
-        self._vidcache[id(key)] = key
-
-
-    def _getcache(self, key):
-        return self._cache.get(id(key))
-
-
-    def get(self, key, default_val=None):
-        if self._brined.has_key(key):
-            val = self._brined.get(key)
-            return self._unbrine(self._glbls, val)
-        else:
-            return default_val
+    def __delitem__(self, key):
+        del self._brined[key]
 
 
     def __iter__(self):
         return self._brined.iterkeys()
 
 
+    def get(self, key, default_val=None):
+        if self._brined.has_key(key):
+            val = self._brined.get(key)
+            return self._unbrine(val)
+        else:
+            return default_val
+
+
     def iteritems(self):
-        glbls = self._glbls
         brined = self._brined
-        return ((k,self._unbrine(glbls, v)) for k,v in brined.iteritems())
+        return ((k,self._unbrine(v)) for k,v in brined.iteritems())
 
 
     def items(self):
@@ -200,13 +192,25 @@ class Barrel(object):
 
 
     def itervalues(self):
-        act = partial(self._unbrine, self._glbls)
-        return imap(act, self._brined.itervalues())
+        return imap(self._unbrine, self._brined.itervalues())
 
 
     def values(self):
         return list(self.itervalues())
 
+
+    def update(self, from_dict):
+        for key, val in from_dict.items():
+            self[key] = val
+
+
+    def clear(self):
+        self._cache.clear()
+        self._brined.clear()
+        self._glbls = globals()
+
+
+    # == pickle API ==
 
     def __getstate__(self):
         return (self._brined, )
@@ -222,21 +226,32 @@ class Barrel(object):
         self._glbls = globals()
 
 
-    def clear(self):
-        self._cache.clear()
-        self._brined.clear()
-        self._glbls = globals()
-
+    # == Barrel API ==
 
     def use_globals(self, glbls=None):
+
+        """
+        optionally provide a different set of globals when rebuilding
+        functions from their brined bits
+        """
+
         self._glbls = globals() if glbls is None else glbls
 
 
-    def _unbrine(self, with_globals, value):
+    def _putcache(self, key, value):
+        self._cache[id(key)] = value
+        self._vidcache[id(key)] = key
+
+
+    def _getcache(self, key):
+        return self._cache.get(id(key))
+
+
+    def _unbrine(self, value):
         if isinstance(value, BrineObject):
             ret = self._getcache(value)
             if not ret:
-                ret = value.get(with_globals)
+                ret = value.get(self._glbls)
                 self._putcache(value, ret)
             value = ret
 
@@ -244,15 +259,14 @@ class Barrel(object):
             ret = self._getcache(value)
             if ret is None:
                 vt = type(value)
-                ub = partial(self._unbrine, with_globals)
-                ret = vt(imap(ub, iter(value)))
+                ret = vt(imap(self._unbrine, iter(value)))
                 self._putcache(value, ret)
             value = ret
 
         elif isinstance(value, dict):
             ret = self._getcache(value)
             if ret is None:
-                ret = dict(self._unbrine(with_globals, value.items()))
+                ret = dict(self._unbrine(value.items()))
                 self._putcache(value, ret)
             value = ret
 
@@ -260,7 +274,11 @@ class Barrel(object):
 
 
     def _brine(self, value):
-        if isinstance(value, MethodType):
+        if isinstance(value, BuiltinFunctionType):
+            # don't touch builtins
+            pass
+
+        elif isinstance(value, MethodType):
             ret = self._getcache(value)
             if not ret:
                 ret = BarrelMethod(self, value)
@@ -288,126 +306,8 @@ class Barrel(object):
                 ret = dict(self._brine(value.items()))
                 self._putcache(value, ret)
             value = ret
+
         return value
-
-
-class NameBarrel(object):
-
-    """
-    A collection of brined functions. Use a Barrel when you need to
-    brine more than one function, or one or more recursive functions,
-    or functions which share closures, etc.
-    """
-
-
-    def __init__(self):
-        # Do not use.
-        assert(False)
-
-        self.functions = dict()
-
-        # only used for preventing recursion and duplicates in pickling
-        # or unpickling. Never actually stored.
-        self._cache = dict()
-
-
-    def __getstate__(self):
-        return (self.functions, )
-
-
-    def __setstate__(self, state):
-        (self.functions, ) = state
-        self._cache = dict()
-
-
-    def brine_function(self, func):
-        bfunc = self._cache.get(func, None)
-        if not bfunc:
-            if isinstance(func, MethodType):
-                bfunc = BarrelMethod(function=func, barrel=self)
-
-            elif isinstance(func, FunctionType):
-                bfunc = BarrelFunction(function=func, barrel=self)
-
-            else:
-                raise TypeError("Excepected MethodType or FunctionType,"
-                                " got %r" % type(func))
-
-            self._cache[func] = bfunc
-        return bfunc
-
-
-    def unbrine_function(self, bfunc, with_globals):
-        func = self._cache.get(bfunc, None)
-        if not func:
-            func = bfunc.get_function(with_globals)
-            self._cache[bfunc] = func
-        return func
-
-
-    def rename_function(self, original_name, new_name, recurse=True):
-
-        """
-        Changes the name of a function inside the barrel. If recurse is
-        true, then all references to that function by name in any of
-        the functions in this barrel will be replaced.  Raises a
-        RenameException if that name is already being referenced by
-        one of the functions in the barrel.
-        """
-
-        fun = self.functions.get(original_name)
-        if not fun:
-            return
-
-        self.remove_brined(original_name, and_aliases=False)
-
-        fun.rename(new_name, recurse)
-
-        if recurse:
-            for f in self.functions.itervalues():
-                f.rename_references(original_name, new_name)
-
-        self.functions[new_name] = fun
-
-
-    def remove_brined(self, name, and_aliases=False):
-        funcmap = self.functions
-
-        func = funcmap.get(name)
-        if not func:
-            return
-
-        del funcmap[name]
-        if and_aliases:
-            for k,v in funcmap.items():
-                if v is func:
-                    del funcmap[k]
-
-
-    def add_brined(self, brinedfunc, as_name=None):
-        if not as_name:
-            as_name = brinedfunc.get_function_name()
-        self.functions[as_name] = brinedfunc
-
-
-    def get_function(self, name, globals):
-
-        """
-        returns an unbrined function, referenced by name
-        """
-
-        return self.functions.get(name).get_function(globals)
-
-
-    def add_function(self, func, as_name=None):
-
-        """
-        takes a function, brines it, and adds it to this barrel by its
-        current name, or by an alias
-        """
-
-        bfunc = self.brine_function(func)
-        self.add_brined(bfunc, as_name=as_name)
 
 
 #

@@ -20,12 +20,12 @@ To truly pickle a function we need to be able to duplicate its code
 and its closures. By default, pickle will simply store the function's
 name, and then attempt to associate that with a function when
 unpickling. In order to mark a function for actual storage, use the
-`brine` function to create a BrineFunction, which may then be
-pickled. Later, after unpickling the BrineFunction, call `unbrine` to
-get a new copy of the original function
+`brine` function to create a BrineFunction, which may then be pickled.
+Later, after unpickling the BrineFunction, call `unbrine` to get a new
+copy of the original function
 
 See the brine.barrel module in order to pickle recursive functions,
-multiple functions, or functions with closures.
+mutually recursive functions, and the like.
 
 author: Christopher O'Brien  <obriencj@gmail.com>
 licelse: LGPL v.3
@@ -33,8 +33,7 @@ licelse: LGPL v.3
 
 
 from abc import ABCMeta, abstractmethod
-from functools import partial
-from types import BuiltinFunctionType, FunctionType, MethodType, CodeType
+from types import BuiltinFunctionType, FunctionType, MethodType
 from ._cellwork import CellType, cell_get_value, cell_from_value
 
 import copy_reg
@@ -219,7 +218,7 @@ class BrineFunction(BrineObject):
         create a copy of the original function
         """
 
-        glbls = with_globals or globals()
+        glbls = globals() if with_globals is None else with_globals
 
         # compose the function
         func = self._function_new(glbls, list(self._unfunc))
@@ -238,72 +237,6 @@ class BrineFunction(BrineObject):
 
     def _code_new(self, with_globals, uncode):
         return new.code(*uncode)
-
-
-    def get_function_name(self):
-
-        """
-        the internal name for the wrapped function
-        """
-
-        return self._unfunc[2]
-
-
-    def rename(self, name, recurse=True):
-
-        """
-        attempts to rename the function data. If recurse is True, then any
-        references in the function to its own name (provided it's not
-        a shadowed variable reference), will be changed to reflect the
-        new name. This makes it possible to rename recursive
-        functions.
-        """
-
-        orig = self.get_function_name()
-
-        self._unfunc[2] = name
-        self._uncode[9] = name
-
-        if recurse:
-            self.rename_references(orig, name)
-
-
-    def rename_references(self, old_name, new_name):
-
-        """
-        change any references to old_name to instead reference
-        new_name. This does not change function parameter names.
-        """
-
-        uncode = self._unfunc[0]
-
-        # nested defs or lambdas will need to have their references
-        # tweaked too. They should already be BrinedFunctions by this
-        # point
-        consts = uncode[5]
-        for c in consts:
-            if isinstance(c, BrineFunction):
-                c.rename_references(old_name, new_name)
-
-        names = uncode[6]
-        varnames = uncode[7]
-        freevars = uncode[12]
-        cellvars = uncode[13]
-
-        # if it's in either of these, then it's being shadowed (is
-        # that correct with cellvars?) so we won't rename any deeper
-        if not (old_name in varnames or old_name in cellvars):
-
-            # make sure we're not creating a conflict with this rename
-            if new_name in varnames or new_name in cellvars:
-                errm = "conflict renaming %r to %r" % (old_name, new_name)
-                raise RenameException(errm)
-
-            swap = lambda n: new_name if n == old_name else n
-
-            uncode[6] = tuple(swap(n) for n in names)
-            uncode[12] = tuple(swap(n) for n in freevars)
-            uncode[13] = tuple(swap(n) for n in cellvars)
 
 
 class BrineMethod(BrineObject):
@@ -365,22 +298,6 @@ def reg_cell_pickler():
 
 # register when the module is loaded
 reg_cell_pickler()
-
-
-def _pickle_code(code):
-    return _unpickle_code, tuple(code_unnew(code))
-
-
-def _unpickle_code(*ncode):
-    return new.code(*ncode)
-
-
-def reg_code_pickler():
-    copy_reg.pickle(CodeType, _pickle_code, _unpickle_code)
-
-
-# register when the module is loaded
-reg_code_pickler()
 
 
 #
