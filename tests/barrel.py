@@ -23,7 +23,6 @@ license: LGPLv3
 """
 
 
-from brine import function_unnew
 from brine.barrel import Barrel
 from pickle import Pickler, Unpickler
 from cStringIO import StringIO
@@ -31,7 +30,7 @@ from cStringIO import StringIO
 import unittest
 
 
-from . import make_adder, make_pair, Obj, pickle_unpickle
+from . import make_pair, pickle_unpickle, Obj
 
 
 def make_incrementor(start=0, by=5):
@@ -318,10 +317,10 @@ class TestBarrel(unittest.TestCase):
         self.assertEqual(new_add_8, new_ba["add_8"])
         self.assertEqual(new_add_8(100), 108)
 
-        # however with no globals, the 'map' builtin won't be found,
-        # and so trying to call add_8_all will raise a NameError
         new_add_8_all = new_ba["add_8_all"]
 
+        # however with no globals, the 'map' builtin won't be found,
+        # and so trying to call add_8_all will raise a NameError Note,
         # the 'with' support on assertRaises isn't added until 2.7 and
         # we try to support 2.6
         foo = lambda: new_add_8_all([1, 2, 3, 4])
