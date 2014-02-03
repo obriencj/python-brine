@@ -14,12 +14,10 @@
 
 
 """
-
 Unit tests for brine.barrel
 
 author: Christopher O'Brien  <obriencj@gmail.com>
-license: LGPLv3
-
+license: LGPL v.3
 """
 
 
