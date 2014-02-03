@@ -253,7 +253,7 @@ class TestBarrel(unittest.TestCase):
         self.assertRaises(KeyError, foo)
 
         ba.clear()
-        self.assertSequenceEqual(list(iter(ba)), [])
+        self.assertEqual(list(iter(ba)), [])
 
         ba["A"] = 100
         self.assertEqual(ba.get("A", None), 100)
