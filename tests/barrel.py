@@ -31,6 +31,9 @@ from cStringIO import StringIO
 import unittest
 
 
+from . import make_adder, make_pair
+
+
 def make_incrementor(start=0, by=5):
     def incrementor():
         i = incrementor.i
@@ -47,15 +50,6 @@ def make_recursive_adder(by_i=0):
         else:
             return x
     return add_i
-
-
-def create_pair(default_val=None):
-    shared = [default_val]
-    def getter():
-        return shared[0]
-    def setter(val):
-        shared[0] = val
-    return getter, setter
 
 
 def pickle_unpickle(value):
@@ -116,7 +110,7 @@ class TestBarrel(unittest.TestCase):
 
     def test_shared_cell(self):
 
-        getter, setter = create_pair(8)
+        getter, setter = make_pair(8)
         assert(getter() == 8)
 
         setter(9)
@@ -152,9 +146,9 @@ class TestBarrel(unittest.TestCase):
         # multiple versions of the same pairs/cells come
         # out as the same pairs and cells
 
-        getter_a, setter_a = create_pair("A")
-        getter_b, setter_b = create_pair("B")
-        getter_c, setter_c = create_pair("C")
+        getter_a, setter_a = make_pair("A")
+        getter_b, setter_b = make_pair("B")
+        getter_c, setter_c = make_pair("C")
 
         assert(getter_a() == "A")
         assert(getter_b() == "B")

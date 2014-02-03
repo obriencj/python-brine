@@ -38,6 +38,26 @@ def pickle_unpickle(value):
     return Unpickler(buffer).load()
 
 
+class Obj(object):
+    # This is just a sample class we can use for bound method pickling
+    # tests
+    def __init__(self, value):
+        self.value = value
+    def get_value(self):
+        return self.value
+    def set_value(self, value):
+        self.value = value
+
+
+def make_pair(value):
+    shared = [value]
+    def get_value():
+        return shared[0]
+    def set_value(value):
+        shared[0] = value
+    return get_value, set_value
+
+
 def make_adder(by_i=0):
     return lambda x=0: x+by_i
 
@@ -69,9 +89,9 @@ class TestUnnew(unittest.TestCase):
         self.assertEqual(func_a(5), func_b(5))
 
 
-class TestFunction(unittest.TestCase):
+class TestBrine(unittest.TestCase):
 
-    def test_function_pickling(self):
+    def test_brine_function(self):
 
         # this is the function we'll be duplicating.
         func_a = make_adder(8)
@@ -83,20 +103,79 @@ class TestFunction(unittest.TestCase):
         self.assertEqual(func_a(5), func_b(5))
 
 
-class Obj(object):
-    # This is just a sample class we can use for bound method pickling
-    # tests
-    def __init__(self, value):
-        self.value = value
-    def set_value(self, value):
-        self.value = value
-    def get_value(self):
-        return self.value
+    def test_brine_function_dict(self):
+        func_a = make_adder(8)
+        func_b = make_adder(9)
+
+        assert(func_a() == 8)
+        assert(func_b() == 9)
+
+        l = { "func_a": func_a, "func_b": func_b }
+        l = unbrine(pickle_unpickle(brine(l)))
+        func_a2 = l["func_a"]
+        func_b2 = l["func_b"]
+
+        assert(func_a(5) == func_a2(5))
+        assert(func_b(5) == func_b2(5))
 
 
-class TestMethod(unittest.TestCase):
+    def test_brine_function_list(self):
+        func_a = make_adder(8)
+        func_b = make_adder(9)
 
-    def test_method_pickling(self):
+        assert(func_a() == 8)
+        assert(func_b() == 9)
+
+        l = [func_a, func_b]
+        l = unbrine(pickle_unpickle(brine(l)))
+
+        assert(type(l) == list)
+        func_a2, func_b2 = l
+
+        assert(func_a(5) == func_a2(5))
+        assert(func_b(5) == func_b2(5))
+
+
+    def test_brine_function_tuple(self):
+        func_a = make_adder(8)
+        func_b = make_adder(9)
+
+        assert(func_a() == 8)
+        assert(func_b() == 9)
+
+        l = (func_a, func_b)
+        l = unbrine(pickle_unpickle(brine(l)))
+
+        assert(type(l) == tuple)
+        func_a2, func_b2 = l
+
+        assert(func_a(5) == func_a2(5))
+        assert(func_b(5) == func_b2(5))
+
+
+    def test_brine_pair_list(self):
+        getter, setter = make_pair("Hello World")
+
+        # show that they work as expected
+        assert(getter() == "Hello World")
+        setter("Tacos")
+        assert(getter() == "Tacos")
+
+        # now pickle/unpickle to create duplicates of the original
+        # bound methods
+        tmp = [getter, setter]
+        tmp = unbrine(pickle_unpickle(brine(tmp)))
+        bgetter, bsetter = tmp
+
+        # show that these duplicates successfully pickled the
+        assert(bgetter() == "Tacos")
+        bsetter("Hello World")
+        assert(bgetter() == "Hello World")
+
+        assert(getter() == "Tacos")
+
+
+    def test_brine_method_list(self):
         o = Obj("Hello World")
 
         # snag bound methods from our object
@@ -110,7 +189,7 @@ class TestMethod(unittest.TestCase):
 
         # now pickle/unpickle to create duplicates of the original
         # bound methods
-        tmp = (getter, setter)
+        tmp = [getter, setter]
         tmp = unbrine(pickle_unpickle(brine(tmp)))
         bgetter, bsetter = tmp
 

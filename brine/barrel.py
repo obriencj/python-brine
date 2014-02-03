@@ -262,7 +262,7 @@ class Barrel(object):
                 self._putcache(value, ret)
             value = ret
 
-        elif isinstance(value, (tuple,list,set)):
+        elif isinstance(value, (tuple, list)):
             ret = self._getcache(value)
             if ret is None:
                 vt = type(value)

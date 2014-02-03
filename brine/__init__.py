@@ -50,10 +50,10 @@ def brine(value):
 
     """
     Wraps a value so that it may be pickled. Funcions are wrapped in a
-    BrineFunction; methods are wrapped in a BrineMethod; lists,
-    tuples, and sets have their items brined; dictionaries have their
-    values (but not keys) brined. Builtin functions and all other
-    types are returned unchanged.
+    BrineFunction; methods are wrapped in a BrineMethod; lists and
+    tuples have their items brined; dictionaries have their values
+    (but not keys) brined. Builtin functions and all other types are
+    returned unchanged.
 
     Note that there is no de-duplication or caching -- ie: if the same
     function is in a list multiple times, each will be wrapped
@@ -68,7 +68,7 @@ def brine(value):
         return BrineMethod(value)
     elif isinstance(value, FunctionType):
         return BrineFunction(value)
-    elif isinstance(value, (list, tuple, set)):
+    elif isinstance(value, (list, tuple)):
         # create a duplicate of the collection with brined internals
         ty = type(value)
         return ty(brine(i) for i in iter(value))
@@ -76,7 +76,7 @@ def brine(value):
         items = value.items()
         return dict((key,brine(val)) for key,val in items)
     else:
-        return func
+        return value
 
 
 def unbrine(value, with_globals=None):
@@ -89,7 +89,7 @@ def unbrine(value, with_globals=None):
 
     if isinstance(value, BrineObject):
         return value.get(glbls)
-    elif isinstance(value, (list, tuple, set)):
+    elif isinstance(value, (list, tuple)):
         ty = type(value)
         return ty(unbrine(i, glbls) for i in iter(value))
     elif isinstance(value, dict):
