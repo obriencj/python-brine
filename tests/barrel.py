@@ -217,8 +217,8 @@ class TestBarrel(unittest.TestCase):
         nsetter2 = new_ba["gs"][1]
 
         # no duplication, same members
-        self.assertEquals(ngetter1, ngetter2)
-        self.assertEquals(nsetter1, nsetter2)
+        self.assertEqual(ngetter1, ngetter2)
+        self.assertEqual(nsetter1, nsetter2)
 
         # same self class
         assert(type(ngetter1.im_self) == type(getter.im_self))
@@ -239,13 +239,13 @@ class TestBarrel(unittest.TestCase):
 
         ba = Barrel()
         ba["Hello"] = "World"
-        self.assertEquals(ba.keys(), ["Hello"])
-        self.assertEquals(ba.values(), ["World"])
-        self.assertEquals(ba.items(), [("Hello", "World")])
+        self.assertEqual(ba.keys(), ["Hello"])
+        self.assertEqual(ba.values(), ["World"])
+        self.assertEqual(ba.items(), [("Hello", "World")])
 
         del ba["Hello"]
-        self.assertEquals(ba.keys(), [])
-        self.assertEquals(ba.values(), [])
+        self.assertEqual(ba.keys(), [])
+        self.assertEqual(ba.values(), [])
 
         with self.assertRaises(KeyError):
             ba["Hello"]
@@ -254,20 +254,20 @@ class TestBarrel(unittest.TestCase):
         self.assertSequenceEqual(list(iter(ba)), [])
 
         ba["A"] = 100
-        self.assertEquals(ba.get("A", None), 100)
-        self.assertEquals(ba.get("B", None), None)
+        self.assertEqual(ba.get("A", None), 100)
+        self.assertEqual(ba.get("B", None), None)
 
         data = {"A": 101, "B": 102, "Hello": "World"}
         ba.update(data)
 
-        self.assertEquals(ba["A"], 101)
-        self.assertEquals(ba["B"], 102)
-        self.assertEquals(ba["Hello"], "World")
+        self.assertEqual(ba["A"], 101)
+        self.assertEqual(ba["B"], 102)
+        self.assertEqual(ba["Hello"], "World")
 
         d = {}
         d.update(ba)
 
-        self.assertEquals(d, data)
+        self.assertEqual(d, data)
 
 
     def test_barrel_brine_other(self):
@@ -292,13 +292,13 @@ class TestBarrel(unittest.TestCase):
         assert(data_stuff == ndata_stuff)
 
 
-    def test_barrel_no_globals(self):
+    def test_barrel_reset_no_globals(self):
         add_8 = lambda x: x+8
         add_8_all = lambda l: map(add_8, l)
 
-        self.assertEquals(add_8(100), 108)
+        self.assertEqual(add_8(100), 108)
         res = add_8_all([1, 2, 3, 4])
-        self.assertEquals(res, [9, 10, 11, 12])
+        self.assertEqual(res, [9, 10, 11, 12])
 
         ba = Barrel()
         ba["add_8"] = add_8
@@ -313,13 +313,26 @@ class TestBarrel(unittest.TestCase):
 
         # this works fine since it references no globals
         new_add_8 = new_ba["add_8"]
-        self.assertEquals(new_add_8(100), 108)
+        self.assertEqual(new_add_8, new_ba["add_8"])
+        self.assertEqual(new_add_8(100), 108)
 
         # however with no globals, the 'map' builtin won't be found,
         # and so trying to call add_8_all will raise a NameError
         new_add_8_all = new_ba["add_8_all"]
         with self.assertRaises(NameError):
             res = new_add_8_all([1, 2, 3, 4])
+
+        new_ba.reset()
+        new_ba.use_globals()
+
+        newer_add_8 = new_ba["add_8"]
+        self.assertNotEqual(new_add_8, newer_add_8)
+        self.assertEqual(newer_add_8(100), 108)
+
+        newer_add_8_all = new_ba["add_8_all"]
+        self.assertNotEqual(new_add_8_all, newer_add_8_all)
+        res = newer_add_8_all([1, 2, 3, 4])
+        self.assertEqual(res, [9, 10, 11, 12])
 
 
 #
