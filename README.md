@@ -172,6 +172,26 @@ coverage html
 [coverage.py]: http://nedbatchelder.com/code/coverage/
 
 
+## TODO
+
+The following tasks need to be taken care of before we reach the point
+of tagging a 1.0.0 release and subsequently publishing to [PyPI].
+
+* Change the timing on brining the contents of a `brine.Barrel`. As is
+  currently implemented objects are brined at the time of being added
+  to the barrel (by being associated with a key). This causes problems
+  for mutable types, as it's conceivable that they could change post
+  brining, and then the barrel contents would actually be out-of-date.
+  Instead I should consider only brining as part of the `__getdata__`
+  call to the barrel.
+* Support for `functools.partial`. This type supports pickle, but the
+  callable it wraps is of course subject to the normal pickle
+  rules. As such, we should provide a way to brine a partial -- its
+  `func` member and perhaps `args` and `keywords` as well.
+* Should we allow users to extend BrineObject, in the same manner that
+  pickle can be (somewhat) extended today? TBD.
+
+
 ## Contact
 
 Christopher O'Brien <obriencj@gmail.com>
