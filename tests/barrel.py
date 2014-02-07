@@ -22,8 +22,9 @@ license: LGPL v.3
 
 
 from brine.barrel import Barrel
-from pickle import Pickler, Unpickler
 from cStringIO import StringIO
+from functools import partial
+from pickle import Pickler, Unpickler
 
 import unittest
 
@@ -335,6 +336,59 @@ class TestBarrel(unittest.TestCase):
         self.assertNotEqual(new_add_8_all, newer_add_8_all)
         res = newer_add_8_all([1, 2, 3, 4])
         self.assertEqual(res, [9, 10, 11, 12])
+
+
+    def test_barrel_partial_function(self):
+        add_x_y = lambda x, y: (x + y)
+        add_8 = partial(add_x_y, 8)
+
+        assert(type(add_8) == partial)
+        assert(add_8(10) == 18)
+
+        ba = Barrel()
+        ba["add_8"] = add_8
+
+        new_ba = pickle_unpickle(ba)
+        new_add_8 = new_ba["add_8"]
+
+        assert(add_8 != new_add_8)
+        assert(type(new_add_8) == partial)
+        assert(add_8(11) == 19)
+
+
+    def test_barrel_partial_method(self):
+        o = Obj("Hungry")
+
+        assert(o.get_value() == "Hungry")
+
+        getter = o.get_value
+        give_cake = partial(o.set_value, "Cake")
+        give_taco = partial(o.set_value, "Taco")
+
+        give_cake()
+        assert(getter() == "Cake")
+        give_taco()
+        assert(getter() == "Taco")
+
+        ba = Barrel()
+        ba["getter"] = getter
+        ba["cake"] = give_cake
+        ba["taco"] = give_taco
+
+        new_ba = pickle_unpickle(ba)
+        ngetter = new_ba["getter"]
+        ngive_cake = new_ba["cake"]
+        ngive_taco = new_ba["taco"]
+
+        assert(ngetter() == "Taco")
+        ngive_cake()
+        assert(ngetter() == "Cake")
+
+        # check that they're not interfering with one-another
+        assert(ngetter() != getter())
+
+        ngive_taco()
+        assert(ngetter() == "Taco")
 
 
 #

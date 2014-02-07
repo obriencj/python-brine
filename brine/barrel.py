@@ -22,7 +22,7 @@ license: LGPL v.3
 """
 
 
-from brine import BrineObject, BrineFunction, BrineMethod
+from brine import BrineObject, BrineFunction, BrineMethod, BrinePartial
 from brine import brine, unbrine
 from brine._cellwork import cell_get_value, cell_set_value, cell_from_value
 from functools import partial
@@ -30,7 +30,7 @@ from itertools import imap
 from types import BuiltinFunctionType, FunctionType, MethodType
 
 
-__all__ = [ "Barrel", "BarrelFunction", "BarrelMethod" ]
+__all__ = [ "Barrel", "BarrelFunction", "BarrelMethod", "BarrelPartial" ]
 
 
 class BarrelFunction(BrineFunction):
@@ -117,6 +117,41 @@ class BarrelMethod(BrineMethod):
     def __init__(self, barrel, boundmethod):
         self._barrel = barrel
         super(BarrelMethod, self).__init__(boundmethod)
+
+
+class BarrelPartial(BrinePartial):
+
+    """
+    A brined partial in a barrel.
+    """
+
+    def __init__(self, barrel, part):
+        self._barrel = barrel
+        super(BarrelPartial, self).__init__(part)
+
+
+    def set(self, part):
+        brine = self._barrel._brine
+        self.func = brine(part.func)
+        self.args = brine(part.args or None)
+        self.keywords = brine(part.keywords or None)
+
+
+    def get(self, with_globals):
+        unbrine = self._barrel._unbrine
+        func = unbrine(self.func)
+        args = unbrine(self.args or tuple())
+        kwds = unbrine(self.keywords or dict())
+        return partial(func, *args, **kwds)
+
+
+    def __getstate__(self):
+        return (self._barrel, ) + super(BarrelPartial, self).__getstate__()
+
+
+    def __setstate__(self, data):
+        self._barrel = data[0]
+        super(BarrelPartial, self).__setstate__(data[1:])
 
 
 class Barrel(object):
@@ -291,6 +326,13 @@ class Barrel(object):
         if isinstance(value, BuiltinFunctionType):
             # don't touch builtins
             pass
+
+        elif isinstance(value, partial):
+            ret = self._getcache(value)
+            if not ret:
+                ret = BarrelPartial(self, value)
+                self._putcache(value, ret)
+            value = ret
 
         elif isinstance(value, MethodType):
             ret = self._getcache(value)

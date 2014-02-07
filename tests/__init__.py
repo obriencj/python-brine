@@ -25,6 +25,7 @@ from brine import function_unnew, function_new
 from brine import code_unnew, code_new
 from brine import brine, unbrine
 from cStringIO import StringIO
+from functools import partial
 from pickle import Pickler, Unpickler
 
 import unittest
@@ -217,6 +218,49 @@ class TestBrine(unittest.TestCase):
         assert(bgetter() == "Hello World")
 
         assert(getter() == "Tacos")
+
+
+    def test_brine_partial_function(self):
+        add_x_y = lambda x, y: (x + y)
+        add_8 = partial(add_x_y, 8)
+
+        assert(type(add_8) == partial)
+        assert(add_8(10) == 18)
+
+        new_add_8 = unbrine(pickle_unpickle(brine(add_8)))
+
+        assert(add_8 != new_add_8)
+        assert(type(new_add_8) == partial)
+        assert(add_8(11) == 19)
+
+
+    def test_brine_partial_method(self):
+        o = Obj("Hungry")
+
+        assert(o.get_value() == "Hungry")
+
+        getter = o.get_value
+        give_cake = partial(o.set_value, "Cake")
+        give_taco = partial(o.set_value, "Taco")
+
+        give_cake()
+        assert(getter() == "Cake")
+        give_taco()
+        assert(getter() == "Taco")
+
+        tmp = [getter, give_cake, give_taco]
+        tmp = unbrine(pickle_unpickle(brine(tmp)))
+        ngetter, ngive_cake, ngive_taco = tmp
+
+        assert(ngetter() == "Taco")
+        ngive_cake()
+        assert(ngetter() == "Cake")
+
+        # check that they're not interfering with one-another
+        assert(ngetter() != getter())
+
+        ngive_taco()
+        assert(ngetter() == "Taco")
 
 
 #

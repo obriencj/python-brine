@@ -36,6 +36,7 @@ licelse: LGPL v.3
 
 
 from abc import ABCMeta, abstractmethod
+from functools import partial
 from types import BuiltinFunctionType, FunctionType, MethodType
 from ._cellwork import CellType, cell_get_value, cell_from_value
 
@@ -43,7 +44,8 @@ import copy_reg
 import new
 
 
-__all__ = [ "BrineObject", "BrineFunction", "BrineMethod",
+__all__ = [ "BrineObject",
+            "BrineFunction", "BrineMethod", "BrinePartial",
             "brine", "unbrine",
             "code_unnew", "code_new",
             "function_unnew", "function_new" ]
@@ -67,6 +69,8 @@ def brine(value):
 
     if isinstance(value, BuiltinFunctionType):
         return value
+    elif isinstance(value, partial):
+        return BrinePartial(value)
     elif isinstance(value, MethodType):
         return BrineMethod(value)
     elif isinstance(value, FunctionType):
@@ -304,6 +308,42 @@ class BrineMethod(BrineObject):
     def __setstate__(self, state):
         self._im_self = state[0]
         self._funcname = state[1]
+
+
+class BrinePartial(BrineObject):
+
+    """
+    Wrap a functools.partial instance that may be referencing an
+    otherwise un-pickle-able function or method
+    """
+
+    def __init__(self, part=None):
+        self.func = None
+        self.args = None
+        self.keywords = None
+        if part is not None:
+            self.set(part)
+
+
+    def set(self, part):
+        self.func = brine(part.func)
+        self.args = brine(part.args or None)
+        self.keywords = brine(part.keywords or None)
+
+
+    def get(self, with_globals):
+        func = unbrine(self.func, with_globals)
+        args = unbrine(self.args or tuple(), with_globals)
+        kwds = unbrine(self.keywords or dict(), with_globals)
+        return partial(func, *args, **kwds)
+
+
+    def __getstate__(self):
+        return (self.func, self.args, self.keywords)
+
+
+    def __setstate__(self, data):
+        self.func, self.args, self.keywords = data
 
 
 # let's give the pickle module knowledge of how to load and dump Cell

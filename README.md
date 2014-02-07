@@ -184,10 +184,9 @@ of tagging a 1.0.0 release and subsequently publishing to [PyPI].
   brining, and then the barrel contents would actually be out-of-date.
   Instead I should consider only brining as part of the `__getdata__`
   call to the barrel.
-* Support for `functools.partial`. This type supports pickle, but the
-  callable it wraps is of course subject to the normal pickle
-  rules. As such, we should provide a way to brine a partial -- its
-  `func` member and perhaps `args` and `keywords` as well.
+* Support for unbound instance methods in addition to the existing
+  support for bound instance methods.
+* Support for class methods.
 * Should we allow users to extend BrineObject, in the same manner that
   pickle can be (somewhat) extended today? TBD.
 
