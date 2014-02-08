@@ -158,102 +158,108 @@ class Barrel(object):
 
     """
     A dict-like mapping supporting automatic brining of contained
-    values
+    values when pickled.
     """
 
-    # TODO: this tries to do brining at the wrong time (at __setitem__
-    # rather than __getdata__), I need to fix that.  However, the
-    # __getitem__ still needs to be unbrining point, since we want to
-    # give the option to set globals before we unbrine anything.
-
     def __init__(self):
-        self._cache = dict()
-        self._vidcache = dict()
-        self._brined = dict()
+        self._brined = None
+        self._unbrined = dict()
         self._glbls = globals()
+        self._cache = None
 
 
-    #  == dict API ==
+    # == dict API ==
 
     def __setitem__(self, key, val):
-        val = self._brine(val)
-        self._brined[key] = self._brine(val)
+        if self._unbrined is None:
+            self._unbrine_all()
+        self._unbrined[key] = val
 
 
     def __getitem__(self, key):
-        if self._brined.has_key(key):
-            val = self._brined.get(key)
-            return self._unbrine(val)
-        else:
-            raise KeyError(key)
+        if self._unbrined is None:
+            self._unbrine_all()
+        return self._unbrined[key]
 
 
     def __delitem__(self, key):
-        del self._brined[key]
+        if self._unbrined is not None:
+            del self._unbrined[key]
 
 
     def __iter__(self):
-        return self._brined.iterkeys()
+        if self._unbrined is None:
+            self._unbrine_all()
+        return iter(self._unbrined)
 
 
-    def get(self, key, default_val=None):
-        if self._brined.has_key(key):
-            val = self._brined.get(key)
-            return self._unbrine(val)
-        else:
-            return default_val
+    def get(self, key, default_value=None):
+        if self._unbrined is None:
+            self._unbrine_all()
+        return self._unbrined.get(key, default_value)
 
 
     def iteritems(self):
-        brined = self._brined
-        return ((k,self._unbrine(v)) for k,v in brined.iteritems())
+        if self._unbrined is None:
+            self._unbrine_all()
+        return self._unbrined.iteritems()
 
 
     def items(self):
-        return list(self.iteritems())
+        if self._unbrined is None:
+            self._unbrine_all()
+        return self._unbrined.items()
 
 
     def iterkeys(self):
-        return self._brined.iterkeys()
+        if self._unbrined is None:
+            self._unbrine_all()
+        return self._unbrined.iterkeys()
 
 
     def keys(self):
-        return list(self.iterkeys())
+        if self._unbrined is None:
+            self._unbrine_all()
+        return self._unbrined.keys()
 
 
     def itervalues(self):
-        return imap(self._unbrine, self._brined.itervalues())
+        if self._unbrined is None:
+            self._unbrine_all()
+        return self._unbrined.itervalues()
 
 
     def values(self):
-        return list(self.itervalues())
+        if self._unbrined is None:
+            self._unbrine_all()
+        return self._unbrined.values()
 
 
     def update(self, from_dict):
-        for key, val in from_dict.items():
-            self[key] = val
+        if self._unbrined is None:
+            self._unbrine_all()
+        return self._unbrined.update(from_dict)
 
 
     def clear(self):
-        self._cache.clear()
-        self._brined.clear()
-        self._glbls = globals()
+        self._brined = None
+        self._unbrined = dict()
 
 
     # == pickle API ==
 
     def __getstate__(self):
-        return (self._brined, )
+        if self._unbrined is None:
+            return self._brined or dict()
+        else:
+            return self._brine_all()
 
 
     def __setstate__(self, data):
-        self._cache = dict()
-        self._vidcache = dict()
-
-        brined = data[0]
-        self._brined = brined
-
+        self._brined = data
+        self._unbrined = None
         self._glbls = globals()
+        self._cache = None
 
 
     # == Barrel API ==
@@ -271,7 +277,7 @@ class Barrel(object):
     def reset(self):
 
         """
-        Clears the internal caching, meaning any future sets or gets from
+        Clears the internal cache, meaning any future sets or gets from
         this Barrel will cause full brining or unbrining rather than
         returning an already computed value.
 
@@ -280,20 +286,35 @@ class Barrel(object):
         a way to achieve such.
         """
 
-        self._cache.clear()
-        self._vidcache.clear()
+        if self._brined is None:
+            self._brined = self._brine_all()
+        self._unbrined = None
 
 
-    def _putcache(self, key, value):
-        self._cache[id(key)] = value
-        self._vidcache[id(key)] = key
+    def _brine_all(self):
+        self._cache = dict()
+        value = self._brine(self._unbrined)
+        self._cache = None
+        return value
 
 
-    def _getcache(self, key):
-        return self._cache.get(id(key))
+    def _unbrine_all(self):
+        self._cache = dict()
+        self._unbrined = self._unbrine(self._brined)
+        self._cache = None
+
+
+    def _putcache(self, original, brined):
+        self._cache[id(original)] = brined
+
+
+    def _getcache(self, original):
+        return self._cache.get(id(original))
 
 
     def _unbrine(self, value):
+        assert(self._cache is not None)
+
         if isinstance(value, BrineObject):
             ret = self._getcache(value)
             if not ret:
@@ -320,6 +341,8 @@ class Barrel(object):
 
 
     def _brine(self, value):
+        assert(self._cache is not None)
+
         if isinstance(value, BuiltinFunctionType):
             # don't touch builtins
             pass

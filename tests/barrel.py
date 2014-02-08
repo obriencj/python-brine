@@ -391,5 +391,55 @@ class TestBarrel(unittest.TestCase):
         assert(ngetter() == "Taco")
 
 
+    def test_barrel_cache_reset(self):
+        # check behavior of dict API from a freshly reset barrel
+
+        ba = Barrel()
+        ba["tacos"] = "tacos"
+        self.assertEqual(ba["tacos"], "tacos")
+
+        ba.reset()
+        new_ba = pickle_unpickle(ba)
+
+        new_ba["cake"] = "no thanks"
+        new_ba.reset()
+        self.assertEqual(new_ba.get("cake"), None)
+
+        new_ba.reset()
+        new_ba.update({"cake": "no thanks"})
+        self.assertEqual(new_ba["cake"], "no thanks")
+        new_ba.reset()
+        self.assertEqual(new_ba.get("cake"), None)
+
+        new_ba.reset()
+        lval = new_ba.get("tacos")
+        new_ba.reset()
+        rval = new_ba["tacos"]
+        self.assertEqual(lval, rval)
+
+        new_ba.reset()
+        lval = new_ba.items()
+        new_ba.reset()
+        rval = list(new_ba.iteritems())
+        self.assertEqual(lval, rval)
+
+        new_ba.reset()
+        lval = new_ba.keys()
+        new_ba.reset()
+        rval = list(new_ba.iterkeys())
+        self.assertEqual(lval, rval)
+
+        new_ba.reset()
+        lval = list(iter(new_ba))
+        new_ba.reset()
+        rval = list(new_ba.iterkeys())
+        self.assertEqual(lval, rval)
+
+        new_ba.reset()
+        lval = new_ba.values()
+        new_ba.reset()
+        rval = list(new_ba.itervalues())
+        self.assertEqual(lval, rval)
+
 #
 # The end.
