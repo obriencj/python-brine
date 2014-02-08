@@ -166,9 +166,6 @@ class Barrel(object):
     # __getitem__ still needs to be unbrining point, since we want to
     # give the option to set globals before we unbrine anything.
 
-    # TODO: bring in some of the renaming features from the old
-    # NameBarrel version of this class.
-
     def __init__(self):
         self._cache = dict()
         self._vidcache = dict()
