@@ -1,0 +1,16 @@
+*#
+*.bak
+*.egg-info
+*.gz
+*.pyc
+*.so
+*.tar
+*~
+.#*
+.coverage
+MANIFEST
+build
+dist
+htmlcov
+tmp
+coverage.xml
