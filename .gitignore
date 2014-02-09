@@ -15,6 +15,5 @@ _deploy
 build
 coverage.xml
 dist
-docs
 htmlcov
 tmp
