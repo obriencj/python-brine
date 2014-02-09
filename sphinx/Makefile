@@ -9,6 +9,13 @@ SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
 
+
+DEPLOYDIR = _deploy
+DEPLOYFORMAT = dirhtml
+DEPLOYREPO = git@github.com:/obriencj/python-brine
+DEPLOYBRANCH = gh-pages
+
+
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
 $(error The '$(SPHINXBUILD)' command was not found. Make sure you have Sphinx installed, then set the SPHINXBUILD environment variable to point to the full path of the '$(SPHINXBUILD)' executable. Alternatively you can add the directory with the executable to your PATH. If you don't have Sphinx installed, grab it from http://sphinx-doc.org/)
@@ -178,29 +185,36 @@ pseudoxml:
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
-dirs: _static _templates _deploy
+dirs: _static _templates $(DEPLOYDIR)
 
-_static _templates _deploy:
+_static _templates $(DEPLOYDIR):
 	mkdir -p $@
 
-setup-deploy: _deploy
-	pushd _deploy ;\
-	if ! [ -d .git ] ; then \
-		git clone git@github.com:/obriencj/python-brine \
-			--single-branch --branch gh-pages . ;\
+# clones the appropriate git repo and branch in the deploy directory
+# if it isn't already setup
+setup-deploy: $(DEPLOYDIR)
+	if ! [ -d "$(DEPLOYDIR)/.git" ] ; then \
+		git clone $(DEPLOYREPO) $(DEPLOYDIR) \
+			--single-branch \
+			--branch $(DEPLOYBRANCH) ;\
 	fi ;\
-	popd
 
-deploy:	dirhtml setup-deploy
-	pushd _deploy ;\
-	git checkout gh-pages ;\
+# clears out the old contents of _deploy so that we can replace them
+# with our newly generated version
+prep-deploy: setup-deploy
+	pushd $(DEPLOYDIR) ;\
+	git checkout --force $(DEPLOYBRANCH) ;\
 	git rm -rf * ;\
 	rm -rf * ;\
-	touch .nojekyll ;\
+	touch .nojekyll ; git add .nojekyll ;\
 	popd
-	cp -r $(BUILDDIR)/dirhtml/* _deploy/
+
+# builds the selected format of docs, and checks them into the right
+# branch on our repo.
+deploy: $(DEPLOYFORMAT) prep-deploy
+	cp -r "$(BUILDDIR)/$(DEPLOYFORMAT)/"* _deploy/
 	pushd _deploy ;\
-	git add * ;\
+	git add . ;\
 	git commit -m "deploying sphinx update" ;\
 	git push ;\
 	popd
