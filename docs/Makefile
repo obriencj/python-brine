@@ -196,10 +196,12 @@ build-project:
 	./setup.py clean test ;\
 	popd
 
-readme:
-	pandoc --from=markdown --to=rst -o "readme.rst" "../README.md"
+overview.rst: ../README.md
+	sed 's/^\[\!.*/ /g' ../README.md > overview.md
+	pandoc --from=markdown --to=rst -o "overview.rst" "overview.md"
+	rm -f overview.md
 
-generate: build-project readme $(DEPLOYFORMAT)
+generate: build-project overview.rst $(DEPLOYFORMAT)
 
 # clones the appropriate git repo and branch in the deploy directory
 # if it isn't already setup
