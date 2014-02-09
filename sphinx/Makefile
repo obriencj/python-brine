@@ -1,6 +1,8 @@
 # Makefile for Sphinx documentation
 #
 
+SHELL = /bin/bash
+
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
@@ -19,7 +21,7 @@ ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
-.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext
+.PHONY: help clean html dirhtml singlehtml pickle json htmlhelp qthelp devhelp epub latex latexpdf text man changes linkcheck doctest gettext deploy
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
@@ -175,3 +177,20 @@ pseudoxml:
 	$(SPHINXBUILD) -b pseudoxml $(ALLSPHINXOPTS) $(BUILDDIR)/pseudoxml
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
+
+_deploy:
+	mkdir -p _deploy
+
+deploy:	dirhtml _deploy
+	pushd _deploy ;\
+	git checkout gh-pages ;\
+	git rm -rf * ;\
+	rm -rf * ;\
+	touch .nojekyll ;\
+	popd _deploy
+	cp -r $(BUILDDIR)/dirhtml/* _deploy/
+	pushd _deploy ;\
+	git add * ;\
+	git commit -m "deploying sphinx update" ;\
+	git push ;\
+	popd _deploy
