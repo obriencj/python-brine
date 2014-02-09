@@ -26,6 +26,7 @@ license: LGPL v.3
 """
 
 
+from extras import EpydocCommand
 from setuptools import setup, Extension
 
 
@@ -36,10 +37,13 @@ setup( name = "brine",
        version = "0.9.0",
 
        packages = [ "brine" ],
-       
+
        ext_modules = ext,
 
        test_suite = "tests",
+
+       extras_require = {
+           "epydoc": [ "epydoc" ], },
 
        # PyPI information
        author = "Christopher O'Brien",
@@ -56,7 +60,9 @@ setup( name = "brine",
 
        classifiers = ["Intended Audience :: Developers",
                       "Programming Language :: Python :: 2",
-                      "Topic :: Software Development"] )
+                      "Topic :: Software Development"],
+
+       cmdclass = { 'epydoc': EpydocCommand, } )
 
 
 #

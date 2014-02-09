@@ -13,46 +13,7 @@
 # <http://www.gnu.org/licenses/>.
 
 
-from setuptools import Command
-
-
-class Epydoc(Command):
-
-
-    user_options = []
-
-
-    def initialize_options(self):
-        pass
-
-
-    def finalize_options(self):
-        pass
-
-
-    def has_epydoc(self):
-        try:
-            import epydoc.cli
-        except ImportError:
-            return False
-        else:
-            return True
-
-
-    def run_epydoc(self):
-        import epydoc.cli
-        from os.path import join
-
-        self.announce("%r" % epydoc.cli)
-
-
-    def run(self):
-        if not self.has_epydoc():
-            self.warn("epydoc not present")
-            return
-
-        self.run_command("build")
-
+from epydoc_cmd import EpydocCommand
 
 #
 # The end.
