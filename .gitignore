@@ -6,6 +6,7 @@
 *.so
 *.tar
 *~
+.DS_Store
 .#*
 .coverage
 MANIFEST
