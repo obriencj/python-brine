@@ -14,3 +14,4 @@ dist
 htmlcov
 tmp
 coverage.xml
+docs
