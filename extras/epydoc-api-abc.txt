@@ -1,0 +1,2 @@
+abc	->  abc.html
+abc.ABCMeta	->  abc.html#abc.ABCMeta

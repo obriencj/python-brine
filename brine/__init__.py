@@ -48,7 +48,8 @@ __all__ = [ "BrineObject",
             "BrineFunction", "BrineMethod", "BrinePartial",
             "brine", "unbrine",
             "code_unnew", "code_new",
-            "function_unnew", "function_new" ]
+            "function_unnew", "function_new",
+            "barrel" ]
 
 
 def brine(value):

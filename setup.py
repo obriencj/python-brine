@@ -26,7 +26,6 @@ license: LGPL v.3
 """
 
 
-from extras import EpydocCommand
 from setuptools import setup, Extension
 
 
@@ -60,10 +59,7 @@ setup( name = "brine",
 
        classifiers = ["Intended Audience :: Developers",
                       "Programming Language :: Python :: 2",
-                      "Topic :: Software Development"],
-
-       cmdclass = { 'epydoc': EpydocCommand, } )
-
+                      "Topic :: Software Development"], )
 
 #
 # The end.
