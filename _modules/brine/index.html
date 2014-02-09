@@ -1,0 +1,470 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>brine &mdash; brine  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="brine  documentation" href="../../" />
+    <link rel="up" title="Module code" href="../" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../">brine  documentation</a> &raquo;</li>
+          <li><a href="../" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for brine</h1><div class="highlight"><pre>
+<span class="c"># This library is free software; you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Lesser General Public License as</span>
+<span class="c"># published by the Free Software Foundation; either version 3 of the</span>
+<span class="c"># License, or (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This library is distributed in the hope that it will be useful, but</span>
+<span class="c"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
+<span class="c"># Lesser General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Lesser General Public</span>
+<span class="c"># License along with this library; if not, see</span>
+<span class="c"># &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Provides a simple way to pickle/unpickle function objects.</span>
+
+<span class="sd">To truly pickle a function we need to be able to duplicate its code</span>
+<span class="sd">and its closures. By default, pickle will simply store the function&#39;s</span>
+<span class="sd">name, and then attempt to associate that with a function when</span>
+<span class="sd">unpickling. This of course fails when the function is anonymous or not</span>
+<span class="sd">otherwise defined at the top level.</span>
+
+<span class="sd">In order to mark a function for actual storage, use the `brine`</span>
+<span class="sd">function to create a BrineFunction instnace, which may then be</span>
+<span class="sd">pickled. Later, after unpickling the BrineFunction, call `unbrine` to</span>
+<span class="sd">get a new copy of the original function</span>
+
+<span class="sd">See the brine.barrel module in order to pickle recursive functions,</span>
+<span class="sd">mutually recursive functions, and the like.</span>
+
+<span class="sd">@author: Christopher O&#39;Brien  &lt;obriencj@gmail.com&gt;</span>
+<span class="sd">@license: LGPL v.3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span> <span class="nn">types</span> <span class="kn">import</span> <span class="n">BuiltinFunctionType</span><span class="p">,</span> <span class="n">FunctionType</span><span class="p">,</span> <span class="n">MethodType</span>
+<span class="kn">from</span> <span class="nn">._cellwork</span> <span class="kn">import</span> <span class="n">CellType</span><span class="p">,</span> <span class="n">cell_get_value</span><span class="p">,</span> <span class="n">cell_from_value</span>
+
+<span class="kn">import</span> <span class="nn">copy_reg</span>
+<span class="kn">import</span> <span class="nn">new</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&quot;BrineObject&quot;</span><span class="p">,</span>
+            <span class="s">&quot;BrineFunction&quot;</span><span class="p">,</span> <span class="s">&quot;BrineMethod&quot;</span><span class="p">,</span> <span class="s">&quot;BrinePartial&quot;</span><span class="p">,</span>
+            <span class="s">&quot;brine&quot;</span><span class="p">,</span> <span class="s">&quot;unbrine&quot;</span><span class="p">,</span>
+            <span class="s">&quot;code_unnew&quot;</span><span class="p">,</span> <span class="s">&quot;code_new&quot;</span><span class="p">,</span>
+            <span class="s">&quot;function_unnew&quot;</span><span class="p">,</span> <span class="s">&quot;function_new&quot;</span><span class="p">,</span>
+            <span class="s">&quot;barrel&quot;</span> <span class="p">]</span>
+
+
+<div class="viewcode-block" id="brine"><a class="viewcode-back" href="../../brine/#brine.brine">[docs]</a><span class="k">def</span> <span class="nf">brine</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wraps a value so that it may be pickled. Funcions are wrapped in a</span>
+<span class="sd">    BrineFunction; methods are wrapped in a BrineMethod; lists and</span>
+<span class="sd">    tuples have their items brined; dictionaries have their values</span>
+<span class="sd">    (but not keys) brined. Builtin functions and all other types are</span>
+<span class="sd">    returned unchanged.</span>
+
+<span class="sd">    Note that there is no de-duplication or caching -- ie: if the same</span>
+<span class="sd">    function is in a list multiple times, each will be wrapped</span>
+<span class="sd">    individually and as a result will be duplicated when unbrined. For</span>
+<span class="sd">    complex situations like this, use a Barrel from the brine.barrel</span>
+<span class="sd">    module.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">BuiltinFunctionType</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">partial</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">BrinePartial</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">MethodType</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">BrineMethod</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">FunctionType</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">BrineFunction</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="c"># create a duplicate of the collection with brined internals</span>
+        <span class="n">ty</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ty</span><span class="p">(</span><span class="n">brine</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">((</span><span class="n">key</span><span class="p">,</span><span class="n">brine</span><span class="p">(</span><span class="n">val</span><span class="p">))</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">items</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+</div>
+<div class="viewcode-block" id="unbrine"><a class="viewcode-back" href="../../brine/#brine.unbrine">[docs]</a><span class="k">def</span> <span class="nf">unbrine</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">with_globals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns an unwrapped duplicate of a value that had been wrapped</span>
+<span class="sd">    via the brine function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">glbls</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()</span> <span class="k">if</span> <span class="n">with_globals</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">with_globals</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">BrineObject</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">glbls</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+        <span class="n">ty</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ty</span><span class="p">(</span><span class="n">unbrine</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">glbls</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">((</span><span class="n">key</span><span class="p">,</span><span class="n">unbrine</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">glbls</span><span class="p">))</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span><span class="n">val</span> <span class="ow">in</span> <span class="n">items</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+</div>
+<div class="viewcode-block" id="code_unnew"><a class="viewcode-back" href="../../brine/#brine.code_unnew">[docs]</a><span class="k">def</span> <span class="nf">code_unnew</span><span class="p">(</span><span class="n">code</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns the necessary arguments for use in code_new to create an</span>
+<span class="sd">    identical but separate code block</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="p">[</span> <span class="n">code</span><span class="o">.</span><span class="n">co_argcount</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_nlocals</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_stacksize</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_flags</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_code</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_consts</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_names</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_varnames</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_filename</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_name</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_firstlineno</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_lnotab</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_freevars</span><span class="p">,</span>
+             <span class="n">code</span><span class="o">.</span><span class="n">co_cellvars</span> <span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="code_new"><a class="viewcode-back" href="../../brine/#brine.code_new">[docs]</a><span class="k">def</span> <span class="nf">code_new</span><span class="p">(</span><span class="n">argcount</span><span class="p">,</span> <span class="n">nlocals</span><span class="p">,</span> <span class="n">stacksize</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span> <span class="n">consts</span><span class="p">,</span>
+             <span class="n">names</span><span class="p">,</span> <span class="n">varnames</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">firstlineno</span><span class="p">,</span> <span class="n">lnotab</span><span class="p">,</span>
+             <span class="n">freevars</span><span class="p">,</span> <span class="n">cellvars</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot; returns a new code instance &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">new</span><span class="o">.</span><span class="n">code</span><span class="p">(</span><span class="n">argcount</span><span class="p">,</span> <span class="n">nlocals</span><span class="p">,</span> <span class="n">stacksize</span><span class="p">,</span> <span class="n">flags</span><span class="p">,</span> <span class="n">code</span><span class="p">,</span>
+                    <span class="n">consts</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">varnames</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span>
+                    <span class="n">firstlineno</span><span class="p">,</span> <span class="n">lnotab</span><span class="p">,</span> <span class="n">freevars</span><span class="p">,</span> <span class="n">cellvars</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="function_unnew"><a class="viewcode-back" href="../../brine/#brine.function_unnew">[docs]</a><span class="k">def</span> <span class="nf">function_unnew</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns the necessary arguments for use in function_new to create</span>
+<span class="sd">    an identical but separate function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="p">[</span> <span class="n">func</span><span class="o">.</span><span class="n">func_code</span><span class="p">,</span>
+             <span class="n">func</span><span class="o">.</span><span class="n">func_globals</span><span class="p">,</span>
+             <span class="n">func</span><span class="o">.</span><span class="n">func_name</span><span class="p">,</span>
+             <span class="n">func</span><span class="o">.</span><span class="n">func_defaults</span><span class="p">,</span>
+             <span class="n">func</span><span class="o">.</span><span class="n">func_closure</span> <span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="function_new"><a class="viewcode-back" href="../../brine/#brine.function_new">[docs]</a><span class="k">def</span> <span class="nf">function_new</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">closure</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    returns a new function instance from the given code, closures,</span>
+<span class="sd">    etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">new</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">defaults</span><span class="p">,</span> <span class="n">closure</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="BrineObject"><a class="viewcode-back" href="../../brine/#brine.BrineObject">[docs]</a><span class="k">class</span> <span class="nc">BrineObject</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c"># pragma: no cover</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Interface that a Brined value should provide</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="nd">@abstractmethod</span>
+<div class="viewcode-block" id="BrineObject.get"><a class="viewcode-back" href="../../brine/#brine.BrineObject.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+
+<span class="c"># A function object needs to be brined before it can be pickled, and</span>
+<span class="c"># unbrined after it&#39;s unpickled. We need to do this because pickle has</span>
+<span class="c"># some default behavior for pickling types.FunctionType which we do</span>
+<span class="c"># not want to break. Therefore, we will simply wrap any Function</span>
+<span class="c"># instances in BrinedFunction before pickling, and unwap them after</span>
+<span class="c"># unpickling</span>
+
+</div></div>
+<div class="viewcode-block" id="BrineFunction"><a class="viewcode-back" href="../../brine/#brine.BrineFunction">[docs]</a><span class="k">class</span> <span class="nc">BrineFunction</span><span class="p">(</span><span class="n">BrineObject</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wraps a function so that it may be pickled. For the most part</span>
+<span class="sd">    you&#39;ll want to use the brine and unbrine functions from this</span>
+<span class="sd">    module rather than instantiating or accessing this class directly</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unfunc</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fdict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="n">function</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># used to pickle</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unfunc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fdict</span>
+
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="c"># used to unpickle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unfunc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fdict</span> <span class="o">=</span> <span class="n">state</span>
+
+
+<div class="viewcode-block" id="BrineFunction.set"><a class="viewcode-back" href="../../brine/#brine.BrineFunction.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        set the function to be pickled by this instance</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unfunc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_function_unnew</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">function</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">_function_unnew</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
+        <span class="n">unfunc</span> <span class="o">=</span> <span class="n">function_unnew</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+        <span class="n">unfunc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_code_unnew</span><span class="p">(</span><span class="n">unfunc</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">unfunc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="c"># func_globals</span>
+        <span class="k">return</span> <span class="n">unfunc</span>
+
+
+    <span class="k">def</span> <span class="nf">_code_unnew</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        can be overridden to process the unnew data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">code_unnew</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BrineFunction.get"><a class="viewcode-back" href="../../brine/#brine.BrineFunction.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        create a copy of the original function</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">glbls</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()</span> <span class="k">if</span> <span class="n">with_globals</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">with_globals</span>
+
+        <span class="c"># compose the function</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_function_new</span><span class="p">(</span><span class="n">glbls</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unfunc</span><span class="p">))</span>
+
+        <span class="c"># setup any of the function&#39;s members</span>
+        <span class="n">func</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fdict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">func</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">_function_new</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">,</span> <span class="n">ufunc</span><span class="p">):</span>
+        <span class="n">ufunc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_code_new</span><span class="p">(</span><span class="n">with_globals</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">ufunc</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="n">ufunc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">with_globals</span>
+        <span class="k">return</span> <span class="n">function_new</span><span class="p">(</span><span class="o">*</span><span class="n">ufunc</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_code_new</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">,</span> <span class="n">uncode</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">code_new</span><span class="p">(</span><span class="o">*</span><span class="n">uncode</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="BrineMethod"><a class="viewcode-back" href="../../brine/#brine.BrineMethod">[docs]</a><span class="k">class</span> <span class="nc">BrineMethod</span><span class="p">(</span><span class="n">BrineObject</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wraps a bound method so that it can be pickled. By default pickle</span>
+<span class="sd">    refuses to operate on bound instance method object. This wrapper</span>
+<span class="sd">    will still require that the object instance supports pickling,</span>
+<span class="sd">    which in turn requires that the class be defined at the top level.</span>
+<span class="sd">    As with the BrineFunction class, it is better to use the brine and</span>
+<span class="sd">    unbrine functions from this module rather than to instantiate or</span>
+<span class="sd">    access this class directly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">boundmethod</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_im_self</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_funcname</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">boundmethod</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">boundmethod</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BrineMethod.set"><a class="viewcode-back" href="../../brine/#brine.BrineMethod.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_im_self</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">im_self</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_funcname</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">im_func</span><span class="o">.</span><span class="n">__name__</span>
+
+</div>
+<div class="viewcode-block" id="BrineMethod.get"><a class="viewcode-back" href="../../brine/#brine.BrineMethod.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_im_self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_funcname</span><span class="p">)</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_im_self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_funcname</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_im_self</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_funcname</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="BrinePartial"><a class="viewcode-back" href="../../brine/#brine.BrinePartial">[docs]</a><span class="k">class</span> <span class="nc">BrinePartial</span><span class="p">(</span><span class="n">BrineObject</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Wrap a functools.partial instance that may be referencing an</span>
+<span class="sd">    otherwise un-pickle-able function or method</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">part</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">part</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BrinePartial.set"><a class="viewcode-back" href="../../brine/#brine.BrinePartial.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">part</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="BrinePartial.get"><a class="viewcode-back" href="../../brine/#brine.BrinePartial.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">):</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="nb">tuple</span><span class="p">(),</span> <span class="n">with_globals</span><span class="p">)</span>
+        <span class="n">kwds</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">(),</span> <span class="n">with_globals</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="o">=</span> <span class="n">data</span>
+
+
+<span class="c"># let&#39;s give the pickle module knowledge of how to load and dump Cell</span>
+<span class="c"># and Code objects</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_pickle_cell</span><span class="p">(</span><span class="n">cell</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">_unpickle_cell</span><span class="p">,</span> <span class="p">(</span><span class="n">cell_get_value</span><span class="p">(</span><span class="n">cell</span><span class="p">),</span> <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_unpickle_cell</span><span class="p">(</span><span class="n">cell_val</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">cell_from_value</span><span class="p">(</span><span class="n">cell_val</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">reg_cell_pickler</span><span class="p">():</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Called automatically when the module is loaded, this function will</span>
+<span class="sd">    ensure that the CellType has pickle/unpickle functions registered</span>
+<span class="sd">    with copy_reg</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">copy_reg</span><span class="o">.</span><span class="n">pickle</span><span class="p">(</span><span class="n">CellType</span><span class="p">,</span> <span class="n">_pickle_cell</span><span class="p">,</span> <span class="n">_unpickle_cell</span><span class="p">)</span>
+
+
+<span class="c"># register when the module is loaded</span>
+<span class="n">reg_cell_pickler</span><span class="p">()</span>
+
+
+<span class="c">#</span>
+<span class="c"># The end.</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex/" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../">brine  documentation</a> &raquo;</li>
+          <li><a href="../" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>

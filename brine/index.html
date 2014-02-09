@@ -1,0 +1,371 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>brine package &mdash; brine  documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="brine  documentation" href="../" />
+    <link rel="prev" title="Welcome to brine’s documentation!" href="../" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../" title="Welcome to brine’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../">brine  documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="brine-package">
+<h1>brine package<a class="headerlink" href="#brine-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-brine"></span><p>Provides a simple way to pickle/unpickle function objects.</p>
+<p>To truly pickle a function we need to be able to duplicate its code
+and its closures. By default, pickle will simply store the function&#8217;s
+name, and then attempt to associate that with a function when
+unpickling. This of course fails when the function is anonymous or not
+otherwise defined at the top level.</p>
+<p>In order to mark a function for actual storage, use the <cite>brine</cite>
+function to create a BrineFunction instnace, which may then be
+pickled. Later, after unpickling the BrineFunction, call <cite>unbrine</cite> to
+get a new copy of the original function</p>
+<p>See the brine.barrel module in order to pickle recursive functions,
+mutually recursive functions, and the like.</p>
+<p>&#64;author: Christopher O&#8217;Brien  &lt;<a class="reference external" href="mailto:obriencj&#37;&#52;&#48;gmail&#46;com">obriencj<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;
+&#64;license: LGPL v.3</p>
+<dl class="class">
+<dt id="brine.BrineObject">
+<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrineObject</tt><a class="reference internal" href="../_modules/brine/#BrineObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Interface that a Brined value should provide</p>
+<dl class="method">
+<dt id="brine.BrineObject.get">
+<tt class="descname">get</tt><big>(</big><em>with_globals=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineObject.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineObject.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="brine.BrineFunction">
+<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrineFunction</tt><big>(</big><em>function=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#brine.BrineObject" title="brine.BrineObject"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrineObject</span></tt></a></p>
+<p>Wraps a function so that it may be pickled. For the most part
+you&#8217;ll want to use the brine and unbrine functions from this
+module rather than instantiating or accessing this class directly</p>
+<dl class="method">
+<dt id="brine.BrineFunction.get">
+<tt class="descname">get</tt><big>(</big><em>with_globals=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineFunction.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineFunction.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>create a copy of the original function</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brine.BrineFunction.set">
+<tt class="descname">set</tt><big>(</big><em>function</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineFunction.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineFunction.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>set the function to be pickled by this instance</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="brine.BrineMethod">
+<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrineMethod</tt><big>(</big><em>boundmethod=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineMethod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineMethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#brine.BrineObject" title="brine.BrineObject"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrineObject</span></tt></a></p>
+<p>Wraps a bound method so that it can be pickled. By default pickle
+refuses to operate on bound instance method object. This wrapper
+will still require that the object instance supports pickling,
+which in turn requires that the class be defined at the top level.
+As with the BrineFunction class, it is better to use the brine and
+unbrine functions from this module rather than to instantiate or
+access this class directly.</p>
+<dl class="method">
+<dt id="brine.BrineMethod.get">
+<tt class="descname">get</tt><big>(</big><em>with_globals</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineMethod.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineMethod.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.BrineMethod.set">
+<tt class="descname">set</tt><big>(</big><em>method</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineMethod.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineMethod.set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="brine.BrinePartial">
+<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrinePartial</tt><big>(</big><em>part=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinePartial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinePartial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#brine.BrineObject" title="brine.BrineObject"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrineObject</span></tt></a></p>
+<p>Wrap a functools.partial instance that may be referencing an
+otherwise un-pickle-able function or method</p>
+<dl class="method">
+<dt id="brine.BrinePartial.get">
+<tt class="descname">get</tt><big>(</big><em>with_globals</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinePartial.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinePartial.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.BrinePartial.set">
+<tt class="descname">set</tt><big>(</big><em>part</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinePartial.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinePartial.set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="brine.brine">
+<tt class="descclassname">brine.</tt><tt class="descname">brine</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="../_modules/brine/#brine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.brine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wraps a value so that it may be pickled. Funcions are wrapped in a
+BrineFunction; methods are wrapped in a BrineMethod; lists and
+tuples have their items brined; dictionaries have their values
+(but not keys) brined. Builtin functions and all other types are
+returned unchanged.</p>
+<p>Note that there is no de-duplication or caching &#8211; ie: if the same
+function is in a list multiple times, each will be wrapped
+individually and as a result will be duplicated when unbrined. For
+complex situations like this, use a Barrel from the brine.barrel
+module.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="brine.unbrine">
+<tt class="descclassname">brine.</tt><tt class="descname">unbrine</tt><big>(</big><em>value</em>, <em>with_globals=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#unbrine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.unbrine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an unwrapped duplicate of a value that had been wrapped
+via the brine function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="brine.code_unnew">
+<tt class="descclassname">brine.</tt><tt class="descname">code_unnew</tt><big>(</big><em>code</em><big>)</big><a class="reference internal" href="../_modules/brine/#code_unnew"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.code_unnew" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the necessary arguments for use in code_new to create an
+identical but separate code block</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="brine.code_new">
+<tt class="descclassname">brine.</tt><tt class="descname">code_new</tt><big>(</big><em>argcount</em>, <em>nlocals</em>, <em>stacksize</em>, <em>flags</em>, <em>code</em>, <em>consts</em>, <em>names</em>, <em>varnames</em>, <em>filename</em>, <em>name</em>, <em>firstlineno</em>, <em>lnotab</em>, <em>freevars</em>, <em>cellvars</em><big>)</big><a class="reference internal" href="../_modules/brine/#code_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.code_new" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a new code instance</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="brine.function_unnew">
+<tt class="descclassname">brine.</tt><tt class="descname">function_unnew</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="../_modules/brine/#function_unnew"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.function_unnew" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the necessary arguments for use in function_new to create
+an identical but separate function</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="brine.function_new">
+<tt class="descclassname">brine.</tt><tt class="descname">function_new</tt><big>(</big><em>code</em>, <em>with_globals</em>, <em>name</em>, <em>defaults</em>, <em>closure</em><big>)</big><a class="reference internal" href="../_modules/brine/#function_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.function_new" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a new function instance from the given code, closures,
+etc.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-brine.barrel">
+<span id="brine-barrel-module"></span><h2>brine.barrel module<a class="headerlink" href="#module-brine.barrel" title="Permalink to this headline">¶</a></h2>
+<p>Provides a way to Brine a number of interrelated functions, using a
+Barrel</p>
+<p>&#64;author: Christopher O&#8217;Brien  &lt;<a class="reference external" href="mailto:obriencj&#37;&#52;&#48;gmail&#46;com">obriencj<span>&#64;</span>gmail<span>&#46;</span>com</a>&gt;
+&#64;license: LGPL v.3</p>
+<dl class="class">
+<dt id="brine.barrel.Barrel">
+<em class="property">class </em><tt class="descclassname">brine.barrel.</tt><tt class="descname">Barrel</tt><a class="reference internal" href="../_modules/brine/barrel/#Barrel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>A dict-like mapping supporting automatic brining of contained
+values when pickled.</p>
+<dl class="method">
+<dt id="brine.barrel.Barrel.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.get">
+<tt class="descname">get</tt><big>(</big><em>key</em>, <em>default_value=None</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.items">
+<tt class="descname">items</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.items" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.iteritems">
+<tt class="descname">iteritems</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.iteritems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.iteritems" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.iterkeys">
+<tt class="descname">iterkeys</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.iterkeys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.iterkeys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.itervalues">
+<tt class="descname">itervalues</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.itervalues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.itervalues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.keys">
+<tt class="descname">keys</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.keys" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.reset">
+<tt class="descname">reset</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears the internal cache, meaning any future sets or gets from
+this Barrel will cause full brining or unbrining rather than
+returning an already computed value.</p>
+<p>If you retrieved a value from this barrel and want to load a
+new copy (possibly with different globals), calling reset() is
+a way to achieve such.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.update">
+<tt class="descname">update</tt><big>(</big><em>from_dict</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.use_globals">
+<tt class="descname">use_globals</tt><big>(</big><em>glbls=None</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.use_globals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.use_globals" title="Permalink to this definition">¶</a></dt>
+<dd><p>optionally provide a different set of globals when rebuilding
+functions from their brined bits</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.Barrel.values">
+<tt class="descname">values</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="brine.barrel.BarrelFunction">
+<em class="property">class </em><tt class="descclassname">brine.barrel.</tt><tt class="descname">BarrelFunction</tt><big>(</big><em>barrel</em>, <em>function</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#BarrelFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.BarrelFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#brine.BrineFunction" title="brine.BrineFunction"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrineFunction</span></tt></a></p>
+<p>A brined function in a barrel. This function may be recursive, or
+may reference other functions. Use the BrineBarrel&#8217;s add_function
+and get_function methods rather than instanciating this class
+directly.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="brine.barrel.BarrelMethod">
+<em class="property">class </em><tt class="descclassname">brine.barrel.</tt><tt class="descname">BarrelMethod</tt><big>(</big><em>barrel</em>, <em>boundmethod</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#BarrelMethod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.BarrelMethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#brine.BrineMethod" title="brine.BrineMethod"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrineMethod</span></tt></a></p>
+<p>A brined bound method in a barrel.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="brine.barrel.BarrelPartial">
+<em class="property">class </em><tt class="descclassname">brine.barrel.</tt><tt class="descname">BarrelPartial</tt><big>(</big><em>barrel</em>, <em>part</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#BarrelPartial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.BarrelPartial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#brine.BrinePartial" title="brine.BrinePartial"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrinePartial</span></tt></a></p>
+<p>A brined partial in a barrel.</p>
+<dl class="method">
+<dt id="brine.barrel.BarrelPartial.get">
+<tt class="descname">get</tt><big>(</big><em>with_globals</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#BarrelPartial.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.BarrelPartial.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="brine.barrel.BarrelPartial.set">
+<tt class="descname">set</tt><big>(</big><em>part</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#BarrelPartial.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.BarrelPartial.set" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">brine package</a><ul>
+<li><a class="reference internal" href="#module-contents">Module contents</a></li>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-brine.barrel">brine.barrel module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../"
+                        title="previous chapter">Welcome to brine&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/brine.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex/" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../" title="Welcome to brine’s documentation!"
+             >previous</a> |</li>
+        <li><a href="../">brine  documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+  </body>
+</html>
