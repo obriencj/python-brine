@@ -191,6 +191,9 @@ dirs: _static _templates $(DEPLOYDIR)
 _static _templates $(DEPLOYDIR):
 	mkdir -p $@
 
+readme:
+	pandoc --from=markdown --to=rst -o "readme.rst" "../README.md"
+
 # clones the appropriate git repo and branch in the deploy directory
 # if it isn't already setup
 setup-deploy: $(DEPLOYDIR)
@@ -210,11 +213,13 @@ prep-deploy: setup-deploy
 	touch .nojekyll ; git add .nojekyll ;\
 	popd
 
+stage: $(DEPLOYFORMAT) prep-deploy
+	cp -r "$(BUILDDIR)/$(DEPLOYFORMAT)/"* $(DEPLOYDIR)
+
 # builds the selected format of docs, and checks them into the right
 # branch on our repo.
-deploy: $(DEPLOYFORMAT) prep-deploy
-	cp -r "$(BUILDDIR)/$(DEPLOYFORMAT)/"* _deploy/
-	pushd _deploy ;\
+deploy: stage
+	pushd $(DEPLOYDIR) ;\
 	git add . ;\
 	git commit -m "deploying sphinx update" ;\
 	git push ;\
