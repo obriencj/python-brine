@@ -191,14 +191,19 @@ dirs: _static _templates $(DEPLOYDIR)
 _static _templates $(DEPLOYDIR):
 	mkdir -p $@
 
+brine:
+	pushd ../ >/dev/null ;\
+	./setup.py clean test ;\
+	popd
+
 readme:
 	pandoc --from=markdown --to=rst -o "readme.rst" "../README.md"
 
-generate: readme $(DEPLOYFORMAT)
+generate: brine readme $(DEPLOYFORMAT)
 
 # clones the appropriate git repo and branch in the deploy directory
 # if it isn't already setup
-setup-deploy: $(DEPLOYDIR)
+setup-stage: $(DEPLOYDIR)
 	if ! [ -d "$(DEPLOYDIR)/.git" ] ; then \
 		git clone $(DEPLOYREPO) $(DEPLOYDIR) \
 			--single-branch \
@@ -207,7 +212,7 @@ setup-deploy: $(DEPLOYDIR)
 
 # clears out the old contents of _deploy so that we can replace them
 # with our newly generated version
-prep-deploy: setup-deploy
+clean-stage: setup-stage
 	pushd $(DEPLOYDIR) ;\
 	git checkout --force $(DEPLOYBRANCH) ;\
 	git rm -rf * ;\
@@ -215,7 +220,7 @@ prep-deploy: setup-deploy
 	touch .nojekyll ; git add .nojekyll ;\
 	popd
 
-stage: generate prep-deploy
+stage: generate clean-stage
 	cp -r "$(BUILDDIR)/$(DEPLOYFORMAT)/"* $(DEPLOYDIR)
 
 # builds the selected format of docs, and checks them into the right
