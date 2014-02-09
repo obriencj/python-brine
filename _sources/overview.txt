@@ -20,6 +20,8 @@ stability until 1.0.0 is reached. That said, I do not believe it is too
 terribly far off. Until such time as I set the API in stone, avoid
 depending on this module for anything serious.
 
+-  `python-brine
+   documentation <http://obriencj.preoccupied.net/python-brine/>`__
 -  `python-brine on
    GitHub <https://github.com/obriencj/python-brine/>`__
 -  python-brine not on PyPI until version 1.0.0
