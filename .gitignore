@@ -16,3 +16,4 @@ tmp
 coverage.xml
 docs
 _build
+_deploy
