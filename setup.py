@@ -57,6 +57,8 @@ setup( name = "brine",
        requires = [],
        platforms = [ "python2 >= 2.6" ],
 
+       zip_safe = True,
+
        classifiers = ["Intended Audience :: Developers",
                       "Programming Language :: Python :: 2",
                       "Topic :: Software Development"], )
