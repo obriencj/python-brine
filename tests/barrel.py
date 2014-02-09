@@ -16,8 +16,8 @@
 """
 Unit tests for brine.barrel
 
-author: Christopher O'Brien  <obriencj@gmail.com>
-license: LGPL v.3
+:author: Christopher O'Brien  <obriencj@gmail.com>
+:license: LGPL v.3
 """
 
 

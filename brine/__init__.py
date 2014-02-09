@@ -30,8 +30,8 @@ get a new copy of the original function
 See the brine.barrel module in order to pickle recursive functions,
 mutually recursive functions, and the like.
 
-@author: Christopher O'Brien  <obriencj@gmail.com>
-@license: LGPL v.3
+:author: Christopher O'Brien  <obriencj@gmail.com>
+:license: LGPL v.3
 """
 
 
@@ -48,8 +48,7 @@ __all__ = [ "BrineObject",
             "BrineFunction", "BrineMethod", "BrinePartial",
             "brine", "unbrine",
             "code_unnew", "code_new",
-            "function_unnew", "function_new",
-            "barrel" ]
+            "function_unnew", "function_new" ]
 
 
 def brine(value):

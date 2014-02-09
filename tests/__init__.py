@@ -16,8 +16,8 @@
 """
 Unit tests for brine
 
-author: Christopher O'Brien  <obriencj@gmail.com>
-license: LGPL v.3
+:author: Christopher O'Brien  <obriencj@gmail.com>
+:license: LGPL v.3
 """
 
 
