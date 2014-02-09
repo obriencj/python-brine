@@ -178,19 +178,29 @@ pseudoxml:
 	@echo
 	@echo "Build finished. The pseudo-XML files are in $(BUILDDIR)/pseudoxml."
 
-_deploy:
-	mkdir -p _deploy
+dirs: _static _templates _deploy
 
-deploy:	dirhtml _deploy
+_static _templates _deploy:
+	mkdir -p $@
+
+setup-deploy: _deploy
+	pushd _deploy ;\
+	if ! [ -d .git ] ; then \
+		git clone git@github.com:/obriencj/python-brine \
+			--single-branch --branch gh-pages . ;\
+	fi ;\
+	popd
+
+deploy:	dirhtml setup-deploy
 	pushd _deploy ;\
 	git checkout gh-pages ;\
 	git rm -rf * ;\
 	rm -rf * ;\
 	touch .nojekyll ;\
-	popd _deploy
+	popd
 	cp -r $(BUILDDIR)/dirhtml/* _deploy/
 	pushd _deploy ;\
 	git add * ;\
 	git commit -m "deploying sphinx update" ;\
 	git push ;\
-	popd _deploy
+	popd
