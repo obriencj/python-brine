@@ -17,8 +17,8 @@
 Provides a way to Brine a number of interrelated functions, using a
 Barrel
 
-author: Christopher O'Brien  <obriencj@gmail.com>
-license: LGPL v.3
+@author: Christopher O'Brien  <obriencj@gmail.com>
+@license: LGPL v.3
 """
 
 

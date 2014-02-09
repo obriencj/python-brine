@@ -30,8 +30,8 @@ get a new copy of the original function
 See the brine.barrel module in order to pickle recursive functions,
 mutually recursive functions, and the like.
 
-author: Christopher O'Brien  <obriencj@gmail.com>
-licelse: LGPL v.3
+@author: Christopher O'Brien  <obriencj@gmail.com>
+@license: LGPL v.3
 """
 
 
