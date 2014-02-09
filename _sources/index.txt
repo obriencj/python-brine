@@ -3,8 +3,15 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+Brine -- Advanced pickling of functions for Python
+========
 
-.. include:: readme.rst
+.. toctree::
+   :maxdepth: 4
+
+   overview
+   brine
+   barrel
 
 
 Indices and tables

@@ -83,7 +83,7 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span> <span class="s">&quot;Barrel&quot;</span><span class="p">,</span> <span class="s">&quot;BarrelFunction&quot;</span><span class="p">,</span> <span class="s">&quot;BarrelMethod&quot;</span><span class="p">,</span> <span class="s">&quot;BarrelPartial&quot;</span> <span class="p">]</span>
 
 
-<div class="viewcode-block" id="BarrelFunction"><a class="viewcode-back" href="../../../brine/#brine.barrel.BarrelFunction">[docs]</a><span class="k">class</span> <span class="nc">BarrelFunction</span><span class="p">(</span><span class="n">BrineFunction</span><span class="p">):</span>
+<div class="viewcode-block" id="BarrelFunction"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarrelFunction">[docs]</a><span class="k">class</span> <span class="nc">BarrelFunction</span><span class="p">(</span><span class="n">BrineFunction</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A brined function in a barrel. This function may be recursive, or</span>
@@ -158,7 +158,7 @@
         <span class="k">return</span> <span class="n">func</span>
 
 </div>
-<div class="viewcode-block" id="BarrelMethod"><a class="viewcode-back" href="../../../brine/#brine.barrel.BarrelMethod">[docs]</a><span class="k">class</span> <span class="nc">BarrelMethod</span><span class="p">(</span><span class="n">BrineMethod</span><span class="p">):</span>
+<div class="viewcode-block" id="BarrelMethod"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarrelMethod">[docs]</a><span class="k">class</span> <span class="nc">BarrelMethod</span><span class="p">(</span><span class="n">BrineMethod</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A brined bound method in a barrel.</span>
@@ -169,7 +169,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">BarrelMethod</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">boundmethod</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="BarrelPartial"><a class="viewcode-back" href="../../../brine/#brine.barrel.BarrelPartial">[docs]</a><span class="k">class</span> <span class="nc">BarrelPartial</span><span class="p">(</span><span class="n">BrinePartial</span><span class="p">):</span>
+<div class="viewcode-block" id="BarrelPartial"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarrelPartial">[docs]</a><span class="k">class</span> <span class="nc">BarrelPartial</span><span class="p">(</span><span class="n">BrinePartial</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A brined partial in a barrel.</span>
@@ -180,14 +180,14 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">BarrelPartial</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="BarrelPartial.set"><a class="viewcode-back" href="../../../brine/#brine.barrel.BarrelPartial.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">part</span><span class="p">):</span>
+<div class="viewcode-block" id="BarrelPartial.set"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarrelPartial.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">part</span><span class="p">):</span>
         <span class="n">brine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="o">.</span><span class="n">_brine</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="BarrelPartial.get"><a class="viewcode-back" href="../../../brine/#brine.barrel.BarrelPartial.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">):</span>
+<div class="viewcode-block" id="BarrelPartial.get"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarrelPartial.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">):</span>
         <span class="n">unbrine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="o">.</span><span class="n">_unbrine</span>
         <span class="n">func</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="nb">tuple</span><span class="p">())</span>
@@ -204,7 +204,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">BarrelPartial</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 
 </div>
-<div class="viewcode-block" id="Barrel"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel">[docs]</a><span class="k">class</span> <span class="nc">Barrel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel">[docs]</a><span class="k">class</span> <span class="nc">Barrel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A dict-like mapping supporting automatic brining of contained</span>
@@ -243,55 +243,55 @@
         <span class="k">return</span> <span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Barrel.get"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.get"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default_value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unbrine_all</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default_value</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="Barrel.iteritems"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.iteritems"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.iteritems">[docs]</a>    <span class="k">def</span> <span class="nf">iteritems</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unbrine_all</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="Barrel.items"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.items"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.items">[docs]</a>    <span class="k">def</span> <span class="nf">items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unbrine_all</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="Barrel.iterkeys"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.iterkeys">[docs]</a>    <span class="k">def</span> <span class="nf">iterkeys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.iterkeys"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.iterkeys">[docs]</a>    <span class="k">def</span> <span class="nf">iterkeys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unbrine_all</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span><span class="o">.</span><span class="n">iterkeys</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="Barrel.keys"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.keys"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.keys">[docs]</a>    <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unbrine_all</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="Barrel.itervalues"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.itervalues">[docs]</a>    <span class="k">def</span> <span class="nf">itervalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.itervalues"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.itervalues">[docs]</a>    <span class="k">def</span> <span class="nf">itervalues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unbrine_all</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span><span class="o">.</span><span class="n">itervalues</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="Barrel.values"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.values">[docs]</a>    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.values"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.values">[docs]</a>    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unbrine_all</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
 
 </div>
-<div class="viewcode-block" id="Barrel.update"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.update"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">from_dict</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_unbrine_all</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">from_dict</span><span class="p">)</span>
 
 </div>
-<div class="viewcode-block" id="Barrel.clear"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.clear"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_brined</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
@@ -314,7 +314,7 @@
 
     <span class="c"># == Barrel API ==</span>
 
-<div class="viewcode-block" id="Barrel.use_globals"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.use_globals">[docs]</a>    <span class="k">def</span> <span class="nf">use_globals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">glbls</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.use_globals"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.use_globals">[docs]</a>    <span class="k">def</span> <span class="nf">use_globals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">glbls</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        optionally provide a different set of globals when rebuilding</span>
@@ -324,7 +324,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_glbls</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()</span> <span class="k">if</span> <span class="n">glbls</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">glbls</span>
 
 </div>
-<div class="viewcode-block" id="Barrel.reset"><a class="viewcode-back" href="../../../brine/#brine.barrel.Barrel.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.reset"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Clears the internal cache, meaning any future sets or gets from</span>
