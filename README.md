@@ -22,6 +22,7 @@ stability until 1.0.0 is reached. That said, I do not believe it is
 too terribly far off. Until such time as I set the API in stone, avoid
 depending on this module for anything serious.
 
+* [python-brine documentation][docs]
 * [python-brine on GitHub][github]
 * python-brine not on PyPI until version 1.0.0
 
@@ -29,6 +30,8 @@ depending on this module for anything serious.
 
 [pickle]: http://docs.python.org/2.7/library/pickle.html
 "pickle - Python object serialization"
+
+[docs]: http://obriencj.preoccupied.net/python-brine/
 
 [github]: https://github.com/obriencj/python-brine/
 "python-brine on GitHub"
