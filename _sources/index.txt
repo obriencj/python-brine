@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Brine -- Advanced pickling of functions for Python
-========
+==================================================
 
 .. toctree::
    :maxdepth: 4
