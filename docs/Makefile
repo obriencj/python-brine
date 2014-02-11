@@ -219,6 +219,7 @@ setup-stage: $(DEPLOYDIR)
 clean-stage: setup-stage
 	pushd $(DEPLOYDIR) ;\
 	git checkout --force $(DEPLOYBRANCH) ;\
+	git pull ;\
 	git rm -rf * ;\
 	rm -rf * ;\
 	touch .nojekyll ; git add .nojekyll ;\
@@ -226,12 +227,14 @@ clean-stage: setup-stage
 
 stage: generate clean-stage
 	cp -r "$(BUILDDIR)/$(DEPLOYFORMAT)/"* $(DEPLOYDIR)
+	pushd $(DEPLOYDIR) ;\
+	git add . ;\
+	popd
 
 # builds the selected format of docs, and checks them into the right
 # branch on our repo.
 deploy: stage
 	pushd $(DEPLOYDIR) ;\
-	git add . ;\
 	git commit -m "deploying sphinx update" ;\
 	git push ;\
 	popd
