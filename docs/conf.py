@@ -32,7 +32,12 @@ import os
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.viewcode',
+    'sphinx.ext.intersphinx',
 ]
+
+intersphinx_mapping = {
+    "python": ('http://docs.python.org/2', None),
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

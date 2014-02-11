@@ -14,21 +14,27 @@
 
 
 """
-Provides a simple way to pickle/unpickle function objects.
+Brine provides a way to wrap function objects so that they may be
+pickled.
 
 To truly pickle a function we need to be able to duplicate its code
-and its closures. By default, pickle will simply store the function's
-name, and then attempt to associate that with a function when
-unpickling. This of course fails when the function is anonymous or not
-otherwise defined at the top level.
+and its closures. By default, :mod:`pickle` will simply store the
+function's name, and then attempt to associate that with a function
+when unpickling. This of course fails when the function is a lambda or
+not otherwise defined at the top level.
 
-In order to mark a function for actual storage, use the `brine`
-function to create a BrineFunction instnace, which may then be
-pickled. Later, after unpickling the BrineFunction, call `unbrine` to
-get a new copy of the original function
+In order to mark a function, method, or partial for storage, use the
+:func:`brine` function to create a wrapper. Later, after pickling and
+unpickling the wrapper, call :func:`unbrine` to get a new copy of the
+original function.
 
-See the brine.barrel module in order to pickle recursive functions,
-mutually recursive functions, and the like.
+See the :mod:`brine.barrel` module in order to pickle recursive
+functions, mutually recursive functions, and the like.
+
+Loading this module has the side effect of registering a pickle
+handler for the :class:`CellType` type. This should be of low impact,
+as the only place this type is used is within function instances, and
+it is normally an unexposed type.
 
 :author: Christopher O'Brien  <obriencj@gmail.com>
 :license: LGPL v.3
@@ -37,7 +43,8 @@ mutually recursive functions, and the like.
 
 from abc import ABCMeta, abstractmethod
 from functools import partial
-from types import BuiltinFunctionType, FunctionType, MethodType
+from types import BuiltinFunctionType, BuiltinMethodType
+from types import FunctionType, MethodType
 from ._cellwork import CellType, cell_get_value, cell_from_value
 
 import copy_reg
@@ -54,20 +61,35 @@ __all__ = [ "BrineObject",
 def brine(value):
 
     """
-    Wraps a value so that it may be pickled. Funcions are wrapped in a
-    BrineFunction; methods are wrapped in a BrineMethod; lists and
-    tuples have their items brined; dictionaries have their values
-    (but not keys) brined. Builtin functions and all other types are
-    returned unchanged.
+    Wraps function, method, or partial so that they may be pickled.
 
-    Note that there is no de-duplication or caching -- ie: if the same
-    function is in a list multiple times, each will be wrapped
-    individually and as a result will be duplicated when unbrined. For
-    complex situations like this, use a Barrel from the brine.barrel
-    module.
+    There is no de-duplication or caching -- eg. if the same function
+    is in a list multiple times, each will be wrapped individually and
+    as a result will be duplicated when unbrined. For complex
+    situations like this, use a :class:`~brine.barrel.Barrel`
+
+    Methods and functions brined will not have the contents of their
+    cells brined -- eg. if an anonymous function refers to another
+    anonymous function, pickling will fail. Use a
+    :class:`~brine.barrel.Barrel` for such situations.
+
+    Behavior by type of `value` is as follows:
+
+    * :data:`~types.BuiltinFunctionType` or
+      :data:`~types.BuiltinMethodType` is unchanged
+    * :class:`~functools.partial` is wrapped as :class:`BrinePartial`
+    * :data:`~types.MethodType` is wrapped as :class:`BrineMethod`
+    * :data:`~types.FunctionType` is wrapped as :class:`BrineFunction`
+    * :class:`list` and :class:`tuple` are duplicated and their
+      contents are brined
+    * :class:`dict` is duplicated and its values are brined
+    * all other types are returned unchanged
+
+    :param object value: The object or collection to wrap
+    :return: Depending on the type of `value` parameter
     """
 
-    if isinstance(value, BuiltinFunctionType):
+    if isinstance(value, (BuiltinFunctionType, BuiltinMethodType)):
         return value
     elif isinstance(value, partial):
         return BrinePartial(value)
@@ -89,8 +111,23 @@ def brine(value):
 def unbrine(value, with_globals=None):
 
     """
-    Returns an unwrapped duplicate of a value that had been wrapped
-    via the brine function.
+    Unwrap a `value` previously wrapped with :func:`~brine.brine`
+
+    Behavior by type of `value` is as follows:
+
+    * :class:`BrinePartial` unwraps to :class:`~functools.partial`
+    * :class:`BrineMethod` unwraps to :data:`~types.MethodType`
+    * :class:`BrineFunction` unwraps to :data:`~types.FunctionType`
+    * :class:`list` and :class:`tuple` are duplicated with their contents
+      unbrined
+    * :class:`dict` is duplicated and its values are unbrined
+
+    :param value object: object wrapped prior via :func:`brine`
+    :param with_globals: globals dictionary to use when recreating
+      functions. Default is the same as :func:`globals`
+    :type with_globals: `None` or :class:`dict`
+    :return: An unwrapped value, depending on the type of the `value`
+      parameter
     """
 
     glbls = globals() if with_globals is None else with_globals
@@ -110,8 +147,12 @@ def unbrine(value, with_globals=None):
 def code_unnew(code):
 
     """
-    returns the necessary arguments for use in code_new to create an
-    identical but separate code block
+    The necessary arguments for use in :func:`code_new` to create an
+    identical but distinct :data:`~types.CodeType` instance.
+
+    :param code: code object for inspection
+    :type code: :data:`~types.CodeType`
+    :return: :class:`list` of member values of `code`
     """
 
     return [ code.co_argcount,
@@ -134,7 +175,11 @@ def code_new(argcount, nlocals, stacksize, flags, code, consts,
              names, varnames, filename, name, firstlineno, lnotab,
              freevars, cellvars):
 
-    """ returns a new code instance """
+    """
+    Create a new code object. Identical to :func:`new.code`
+
+    :return: new :data:`~types.CodeType` instance
+    """
 
     return new.code(argcount, nlocals, stacksize, flags, code,
                     consts, names, varnames, filename, name,
@@ -144,8 +189,12 @@ def code_new(argcount, nlocals, stacksize, flags, code, consts,
 def function_unnew(func):
 
     """
-    returns the necessary arguments for use in function_new to create
-    an identical but separate function
+    The necessary arguments for use in :func:`function_new` to create
+    an identical but distinct :data:`~types.FunctionType` instance.
+
+    :param func: function object for inspection
+    :type func: :data:`~types.FunctionType`
+    :return: :class:`list` of member values of `func`
     """
 
     return [ func.func_code,
@@ -158,8 +207,18 @@ def function_unnew(func):
 def function_new(code, with_globals, name, defaults, closure):
 
     """
-    returns a new function instance from the given code, closures,
-    etc.
+    Creates a new function. Identical to :func:`new.function`
+
+    :param code: code object for the function to execute when called
+    :type code: :data:`~types.CodeType`
+    :param with_globals:
+    :type with_globals: :class:`dict` often the result of :func:`globals`
+    :param name: name for the function
+    :type name: :class:`str`
+    :param defaults: defaults for the function
+    :param closure: captured :class:`CellType` cells defining the closure
+    :type closure: :class:`tuple`
+    :return: new :data:`~types.FunctionType` instance
     """
 
     return new.function(code, with_globals, name, defaults, closure)
@@ -168,7 +227,7 @@ def function_new(code, with_globals, name, defaults, closure):
 class BrineObject(object): # pragma: no cover
 
     """
-    Interface that a Brined value should provide
+    Abstract base class for brine wrappers.
     """
 
     __metaclass__ = ABCMeta
@@ -297,7 +356,7 @@ class BrineMethod(BrineObject):
         self._funcname = method.im_func.__name__
 
 
-    def get(self, with_globals):
+    def get(self, with_globals=None):
         return getattr(self._im_self, self._funcname)
 
 
@@ -313,8 +372,8 @@ class BrineMethod(BrineObject):
 class BrinePartial(BrineObject):
 
     """
-    Wrap a functools.partial instance that may be referencing an
-    otherwise un-pickle-able function or method
+    Wrap a :class:`functools.partial` instance that references a
+    function or method that is otherwise unsupported by pickle.
     """
 
     def __init__(self, part=None):
@@ -331,7 +390,10 @@ class BrinePartial(BrineObject):
         self.keywords = brine(part.keywords or None)
 
 
-    def get(self, with_globals):
+    def get(self, with_globals=None):
+
+        glbls = globals() if with_globals is None else with_globals
+
         func = unbrine(self.func, with_globals)
         args = unbrine(self.args or tuple(), with_globals)
         kwds = unbrine(self.keywords or dict(), with_globals)
