@@ -55,46 +55,39 @@
   <div class="section" id="overview-of-python-brine">
 <h1>Overview of python-brine<a class="headerlink" href="#overview-of-python-brine" title="Permalink to this headline">¶</a></h1>
 <p>Brine is a <a class="reference external" href="http://python.org">Python</a> module that adds support for
-the &#8220;true&#8221; pickling of functions. The default behavior of the
-<a class="reference external" href="http://docs.python.org/2.7/library/pickle.html">pickle</a> library is
-to reference functions by name alone. This presents a significant
-problem when the function you wish to pickle is either anonymous or not
+the &#8220;true&#8221; pickling of functions. The default behavior of the <tt class="docutils literal"><span class="pre">pickle</span></tt>
+<a class="reference external" href="http://docs.python.org/2.7/library/pickle.html">library</a> is to
+reference functions by name alone. This presents a significant problem
+when the function you wish to serialize is either a <tt class="docutils literal"><span class="pre">lambda</span></tt> or not
 defined at the top level.</p>
-<p>Brine provides a way to pickle the actual underlying code of a function,
-including any captured cells, and then restore them again.</p>
-<p>Brine also provides Barrel, which is a dictionary-like interface for
-brining multiple functions. It allows shared resources to be pickled
-while referring to each other (eg: mutually recursive inner functions).</p>
+<p>The <tt class="docutils literal"><span class="pre">brine</span></tt>
+<a class="reference external" href="http://obriencj.preoccupied.net/python-brine/brine/">module</a>
+provides a way to pickle the actual underlying code of a function,
+including any closures, and then restore them again.</p>
+<p>For more advanced features, there is the <tt class="docutils literal"><span class="pre">brine.barrel</span></tt>
+<a class="reference external" href="http://obriencj.preoccupied.net/python-brine/barrel/">module</a>. A
+barrel is a dictionary-like interface for brining multiple functions.
+Barrel&#8217;s internal bringin step is recursive. This allows anonymous
+functions to work on closure&#8217;s referring to other anonymous functions
+(eg: mutually recursive lambdas and the like). It also preserves
+uniqueness, if you happen to add the same function multiple times.</p>
 <p>I&#8217;ve set the version to 0.9.0 and will not be promising any API
-stability until 1.0.0 is reached. That said, I do not believe it is too
-terribly far off. Until such time as I set the API in stone, avoid
-depending on this module for anything serious.</p>
+stability until 1.0.0 is reached. Until such time as I set the API in
+stone, avoid depending on this module for anything serious. That said, I
+do not believe it has much further to go before being ready.</p>
 <ul class="simple">
 <li><a class="reference external" href="http://obriencj.preoccupied.net/python-brine/">python-brine
 documentation</a></li>
 <li><a class="reference external" href="https://github.com/obriencj/python-brine/">python-brine on
 GitHub</a></li>
-<li>python-brine not on PyPI until version 1.0.0</li>
+<li>python-brine not on <a class="reference external" href="https://pypi.python.org/pypi">PyPI</a> until
+version 1.0.0</li>
 </ul>
-<div class="section" id="requirements">
-<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><a class="reference external" href="http://python.org">Python</a> 2.6 or later (no support for Python 3,
-the underlying function fields differ a bit)</li>
-</ul>
-</div>
-<div class="section" id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
-<p>This module uses setuptools, so simply run</p>
-<div class="code bash highlight-python"><div class="highlight"><pre>python setup.py install
-</pre></div>
-</div>
-</div>
-<div class="section" id="usage">
-<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
-<p>Before we begin, let&#8217;s contrive a function to preform the
-pickle/unpickle dance, so we don&#8217;t have to write that over and over
-again throughout these examples:</p>
+<div class="section" id="using-brine">
+<h2>Using brine<a class="headerlink" href="#using-brine" title="Permalink to this headline">¶</a></h2>
+<p>Before we begin with our examples, let&#8217;s contrive a function to preform
+the pickle/unpickle dance. We&#8217;ll refer to this helper throughout the
+remainder of the section.</p>
 <div class="code python highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">pickle</span> <span class="kn">import</span> <span class="n">Pickler</span><span class="p">,</span> <span class="n">Unpickler</span>
 <span class="kn">from</span> <span class="nn">cStringIO</span> <span class="kn">import</span> <span class="n">StringIO</span>
 
@@ -111,7 +104,7 @@ again throughout these examples:</p>
 the top level. The <tt class="docutils literal"><span class="pre">BrineFunction</span></tt> class wraps a function in a manner
 that supports pickling, and will actually put the code and cells into
 the serialization stream.</p>
-<p>We can use <tt class="docutils literal"><span class="pre">brine.brine</span></tt> to wrap a FunctionType instance, and
+<p>We can use <tt class="docutils literal"><span class="pre">brine.brine</span></tt> to wrap a <tt class="docutils literal"><span class="pre">FunctionType</span></tt> instance, and
 <tt class="docutils literal"><span class="pre">brine.unbrine</span></tt> to unwrap it again.</p>
 <div class="code python highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">brine</span> <span class="kn">import</span> <span class="n">brine</span><span class="p">,</span> <span class="n">unbrine</span>
 
@@ -127,15 +120,31 @@ the serialization stream.</p>
 <span class="n">myfun_redux</span><span class="p">(</span><span class="s">&quot;Mothra&quot;</span><span class="p">)</span> <span class="c"># ==&gt; &quot;Why hello there, Mothra&quot;</span>
 </pre></div>
 </div>
-<p>How about something with a captured value (a closure)?</p>
-<div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">make_myfun</span><span class="p">(</span><span class="n">who</span><span class="p">):</span>
-    <span class="k">return</span> <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span><span class="s">&quot;Why hello there, </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">who</span><span class="p">)</span>
+<p>Here is something more complex &#8211; two functions sharing a captured value
+(a closure).</p>
+<div class="code python highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">make_actor</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="n">who</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;nobody special&quot;</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">notice</span><span class="p">(</span><span class="n">monster</span><span class="p">):</span>
+        <span class="n">who</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">monster</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">alert</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">line</span> <span class="o">%</span> <span class="n">who</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">notice</span><span class="p">,</span> <span class="n">alert</span>
 
-<span class="n">myfun</span> <span class="o">=</span> <span class="n">make_myfun</span><span class="p">(</span><span class="s">&quot;Orion&quot;</span><span class="p">)</span>
-<span class="n">myfun</span><span class="p">()</span> <span class="c"># ==&gt; &quot;Why hello there, Orion&quot;</span>
+<span class="n">actor</span> <span class="o">=</span> <span class="n">make_actor</span><span class="p">(</span><span class="s">&quot;Look out, it&#39;s </span><span class="si">%s</span><span class="s">!&quot;</span><span class="p">)</span>
+<span class="n">notice</span><span class="p">,</span> <span class="n">alert</span> <span class="o">=</span> <span class="n">actor</span>
 
-<span class="n">myfun_redux</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="n">pickle_unpickle</span><span class="p">(</span><span class="n">brine</span><span class="p">(</span><span class="n">myfun</span><span class="p">)))</span>
-<span class="n">myfun_redux</span><span class="p">()</span> <span class="c"># ==&gt; &quot;Why hello there, Orion&quot;</span>
+<span class="n">notice</span><span class="p">(</span><span class="s">&quot;Godzilla&quot;</span><span class="p">)</span>
+<span class="n">alert</span><span class="p">()</span> <span class="c"># ==&gt; &quot;Look out, it&#39;s Godzilla!&quot;</span>
+
+<span class="c"># duplicate our highly trained actor</span>
+<span class="n">actor_redux</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="n">pickle_unpickle</span><span class="p">(</span><span class="n">brine</span><span class="p">(</span><span class="n">actor</span><span class="p">)))</span>
+<span class="n">notice_redux</span><span class="p">,</span> <span class="n">alert_redux</span> <span class="o">=</span> <span class="n">actor_redux</span>
+
+<span class="c"># our copy of the actor functions come out sharing their own new</span>
+<span class="c"># closure cell</span>
+<span class="n">alert_redux</span><span class="p">()</span> <span class="c"># ==&gt; &quot;Look out, it&#39;s Godzilla!&quot;</span>
+<span class="n">notice_redux</span><span class="p">(</span><span class="s">&quot;Mothra&quot;</span><span class="p">)</span>
+<span class="n">alert_redux</span><span class="p">()</span> <span class="c"># ==&gt; &quot;Look out, it&#39;s Mothra!&quot;</span>
 </pre></div>
 </div>
 </div>
@@ -143,12 +152,12 @@ the serialization stream.</p>
 <h3>Bound instance methods<a class="headerlink" href="#bound-instance-methods" title="Permalink to this headline">¶</a></h3>
 <p>Pickle normally refuses to serialize bound instance methods. This is
 somewhat odd, because it can be done by name. The <tt class="docutils literal"><span class="pre">BrineMethod</span></tt> class
-can be used to wrap a bound instance method. Note that because a bound
-method needs to be associated with a object instance, that instance will
-also need to support pickling (and hence, likely need to be defined at
-the top level).</p>
-<p>BrineMethod is name-based; it doesn&#8217;t try to pickle underlying class
-code.</p>
+can be used to wrap a bound instance or class method. Note that because
+a bound method needs to be associated with an object, that instance will
+also need to support pickling (and hence will need its class definition
+available at the top level).</p>
+<p><tt class="docutils literal"><span class="pre">BrineMethod</span></tt> is entirely name-based &#8211; it doesn&#8217;t try to pickle
+underlying class code.</p>
 <div class="code python highlight-python"><div class="highlight"><pre><span class="c"># setup a simple class for us to work over</span>
 <span class="k">class</span> <span class="nc">Obj</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -180,17 +189,41 @@ code.</p>
 </div>
 </div>
 </div>
-<div class="section" id="unit-testing">
-<h2>Unit testing<a class="headerlink" href="#unit-testing" title="Permalink to this headline">¶</a></h2>
-<p>I&#8217;ve setup <a class="reference external" href="https://travis-ci.org">travis-ci</a> and
-<a class="reference external" href="https://coveralls.io">coveralls.io</a> for this project, so tests are
-run automatically, and coverage is computed then. However, if you&#8217;d like
-to run the tests manually, simply invoke them via</p>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference external" href="http://python.org">Python</a> 2.6 or later (no support for Python 3,
+the underlying function fields differ a bit)</li>
+</ul>
+<p>In addition, following tools are used in building, testing, or
+generating documentation from the project sources.</p>
+<ul class="simple">
+<li><a class="reference external" href="http://pythonhosted.org/setuptools/">Setuptools</a></li>
+<li><a class="reference external" href="http://nedbatchelder.com/code/coverage/">Coverage.py</a></li>
+<li><a class="reference external" href="http://www.gnu.org/software/make/">GNU Make</a></li>
+<li><a class="reference external" href="http://johnmacfarlane.net/pandoc/">Pandoc</a></li>
+<li><a class="reference external" href="http://sphinx-doc.org/">Sphinx</a></li>
+</ul>
+<p>These are all available in most linux distributions (eg.
+<a class="reference external" href="http://fedoraproject.org/">Fedora</a>), and for OSX via
+<a class="reference external" href="http://www.macports.org/">MacPorts</a>.</p>
+</div>
+<div class="section" id="building">
+<h2>Building<a class="headerlink" href="#building" title="Permalink to this headline">¶</a></h2>
+<p>This module uses <a class="reference external" href="http://pythonhosted.org/setuptools/">setuptools</a>,
+so simply run the following to build the project.</p>
+<div class="code bash highlight-python"><div class="highlight"><pre>python setup.py build
+</pre></div>
+</div>
+<div class="section" id="testing">
+<h3>Testing<a class="headerlink" href="#testing" title="Permalink to this headline">¶</a></h3>
+<p>Tests are written as <tt class="docutils literal"><span class="pre">unittest</span></tt> test cases. If you&#8217;d like to run the
+tests, simply invoke:</p>
 <div class="code bash highlight-python"><div class="highlight"><pre>python setup.py test
 </pre></div>
 </div>
-<p>You may check code coverage by use of
-<a class="reference external" href="http://nedbatchelder.com/code/coverage/">coverage.py</a>, invoked as</p>
+<p>You may check code coverage via
+<a class="reference external" href="http://nedbatchelder.com/code/coverage/">coverage.py</a>, invoked as:</p>
 <div class="code bash highlight-python"><div class="highlight"><pre># generates coverage data in .coverage
 coverage run --source=brine setup.py test
 
@@ -198,19 +231,49 @@ coverage run --source=brine setup.py test
 coverage html
 </pre></div>
 </div>
+<p>I&#8217;ve setup <a class="reference external" href="https://travis-ci.org">travis-ci</a> and
+<a class="reference external" href="https://coveralls.io">coveralls.io</a> for this project, so tests are
+run automatically, and coverage is computed then. Results are available
+online:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://travis-ci.org/obriencj/python-brine">python-brine on
+Travis-CI</a></li>
+<li><a class="reference external" href="https://coveralls.io/r/obriencj/python-brine">python-brine on
+Coveralls.io</a></li>
+</ul>
+</div>
+<div class="section" id="documentation">
+<h3>Documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h3>
+<p>Documentation is built using <a class="reference external" href="http://sphinx-doc.org/">Sphinx</a>.
+Invoking the following will produce HTML documentation in the
+<tt class="docutils literal"><span class="pre">docs/_build/html</span></tt> directory.</p>
+<div class="code bash highlight-python"><div class="highlight"><pre>cd docs
+make html
+</pre></div>
+</div>
+<p>Note that you will need the following installed to successfully build
+the documentation:</p>
+<p>Documentation is <a class="reference external" href="http://obriencj.preoccupied.net/python-brine/">also available
+online</a>.</p>
+</div>
 </div>
 <div class="section" id="todo">
 <h2>TODO<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
 <p>The following tasks need to be taken care of before we reach the point
-of tagging a 1.0.0 release and subsequently publishing to [PyPI].</p>
+of tagging a 1.0.0 release and subsequently publishing to
+<a class="reference external" href="https://pypi.python.org/pypi">PyPI</a>.</p>
 <ul class="simple">
-<li>Should we allow users to extend BrineObject, in the same manner that
-pickle can be (somewhat) extended today? TBD.</li>
+<li>Perhaps a PKI signing step (optionally) since we are in-fact sending
+executable code around? TBD</li>
+<li>Should we allow users to extend <tt class="docutils literal"><span class="pre">BrineObject</span></tt>, in the same manner
+that pickle can be (somewhat) extended today? TBD.</li>
 </ul>
 </div>
-<div class="section" id="contact">
-<h2>Contact<a class="headerlink" href="#contact" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="author">
+<h2>Author<a class="headerlink" href="#author" title="Permalink to this headline">¶</a></h2>
 <p>Christopher O&#8217;Brien <a class="reference external" href="mailto:obriencj&#37;&#52;&#48;gmail&#46;com">obriencj<span>&#64;</span>gmail<span>&#46;</span>com</a></p>
+<p>If this project interests you, you can read about more of my hacks and
+ideas on <a class="reference external" href="http://obriencj.preoccupied.net">on my blog</a>.</p>
 </div>
 <div class="section" id="license">
 <h2>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h2>
@@ -236,16 +299,19 @@ along with this library; if not, see <a class="reference external" href="http://
   <h3><a href="../">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Overview of python-brine</a><ul>
-<li><a class="reference internal" href="#requirements">Requirements</a></li>
-<li><a class="reference internal" href="#install">Install</a></li>
-<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#using-brine">Using brine</a><ul>
 <li><a class="reference internal" href="#anonymous-or-inner-functions">Anonymous or inner functions</a></li>
 <li><a class="reference internal" href="#bound-instance-methods">Bound instance methods</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#unit-testing">Unit testing</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a></li>
+<li><a class="reference internal" href="#building">Building</a><ul>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#documentation">Documentation</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#todo">TODO</a></li>
-<li><a class="reference internal" href="#contact">Contact</a></li>
+<li><a class="reference internal" href="#author">Author</a></li>
 <li><a class="reference internal" href="#license">License</a></li>
 </ul>
 </li>
