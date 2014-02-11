@@ -2,51 +2,43 @@ Overview of python-brine
 ========================
 
 Brine is a `Python <http://python.org>`__ module that adds support for
-the "true" pickling of functions. The default behavior of the
-`pickle <http://docs.python.org/2.7/library/pickle.html>`__ library is
-to reference functions by name alone. This presents a significant
-problem when the function you wish to pickle is either anonymous or not
+the "true" pickling of functions. The default behavior of the ``pickle``
+`library <http://docs.python.org/2.7/library/pickle.html>`__ is to
+reference functions by name alone. This presents a significant problem
+when the function you wish to serialize is either a ``lambda`` or not
 defined at the top level.
 
-Brine provides a way to pickle the actual underlying code of a function,
-including any captured cells, and then restore them again.
+The ``brine``
+`module <http://obriencj.preoccupied.net/python-brine/brine/>`__
+provides a way to pickle the actual underlying code of a function,
+including any closures, and then restore them again.
 
-Brine also provides Barrel, which is a dictionary-like interface for
-brining multiple functions. It allows shared resources to be pickled
-while referring to each other (eg: mutually recursive inner functions).
+For more advanced features, there is the ``brine.barrel``
+`module <http://obriencj.preoccupied.net/python-brine/barrel/>`__. A
+barrel is a dictionary-like interface for brining multiple functions.
+Barrel's internal bringin step is recursive. This allows anonymous
+functions to work on closure's referring to other anonymous functions
+(eg: mutually recursive lambdas and the like). It also preserves
+uniqueness, if you happen to add the same function multiple times.
 
 I've set the version to 0.9.0 and will not be promising any API
-stability until 1.0.0 is reached. That said, I do not believe it is too
-terribly far off. Until such time as I set the API in stone, avoid
-depending on this module for anything serious.
+stability until 1.0.0 is reached. Until such time as I set the API in
+stone, avoid depending on this module for anything serious. That said, I
+do not believe it has much further to go before being ready.
 
 -  `python-brine
    documentation <http://obriencj.preoccupied.net/python-brine/>`__
 -  `python-brine on
    GitHub <https://github.com/obriencj/python-brine/>`__
--  python-brine not on PyPI until version 1.0.0
+-  python-brine not on `PyPI <https://pypi.python.org/pypi>`__ until
+   version 1.0.0
 
-Requirements
-------------
+Using brine
+-----------
 
--  `Python <http://python.org>`__ 2.6 or later (no support for Python 3,
-   the underlying function fields differ a bit)
-
-Install
--------
-
-This module uses setuptools, so simply run
-
-.. code:: bash
-
-    python setup.py install
-
-Usage
------
-
-Before we begin, let's contrive a function to preform the
-pickle/unpickle dance, so we don't have to write that over and over
-again throughout these examples:
+Before we begin with our examples, let's contrive a function to preform
+the pickle/unpickle dance. We'll refer to this helper throughout the
+remainder of the section.
 
 .. code:: python
 
@@ -67,7 +59,7 @@ the top level. The ``BrineFunction`` class wraps a function in a manner
 that supports pickling, and will actually put the code and cells into
 the serialization stream.
 
-We can use ``brine.brine`` to wrap a FunctionType instance, and
+We can use ``brine.brine`` to wrap a ``FunctionType`` instance, and
 ``brine.unbrine`` to unwrap it again.
 
 .. code:: python
@@ -85,31 +77,47 @@ We can use ``brine.brine`` to wrap a FunctionType instance, and
     # this is now a copy of the original
     myfun_redux("Mothra") # ==> "Why hello there, Mothra"
 
-How about something with a captured value (a closure)?
+Here is something more complex -- two functions sharing a captured value
+(a closure).
 
 .. code:: python
 
-    def make_myfun(who):
-        return lambda: ("Why hello there, %s" % who)
+    def make_actor(line):
+        who = ["nobody special"]
+        def notice(monster):
+            who[0] = str(monster)
+        def alert():
+            return line % who[0]
+        return notice, alert
 
-    myfun = make_myfun("Orion")
-    myfun() # ==> "Why hello there, Orion"
+    actor = make_actor("Look out, it's %s!")
+    notice, alert = actor
 
-    myfun_redux = unbrine(pickle_unpickle(brine(myfun)))
-    myfun_redux() # ==> "Why hello there, Orion"
+    notice("Godzilla")
+    alert() # ==> "Look out, it's Godzilla!"
+
+    # duplicate our highly trained actor
+    actor_redux = unbrine(pickle_unpickle(brine(actor)))
+    notice_redux, alert_redux = actor_redux
+
+    # our copy of the actor functions come out sharing their own new
+    # closure cell
+    alert_redux() # ==> "Look out, it's Godzilla!"
+    notice_redux("Mothra")
+    alert_redux() # ==> "Look out, it's Mothra!"
 
 Bound instance methods
 ~~~~~~~~~~~~~~~~~~~~~~
 
 Pickle normally refuses to serialize bound instance methods. This is
 somewhat odd, because it can be done by name. The ``BrineMethod`` class
-can be used to wrap a bound instance method. Note that because a bound
-method needs to be associated with a object instance, that instance will
-also need to support pickling (and hence, likely need to be defined at
-the top level).
+can be used to wrap a bound instance or class method. Note that because
+a bound method needs to be associated with an object, that instance will
+also need to support pickling (and hence will need its class definition
+available at the top level).
 
-BrineMethod is name-based; it doesn't try to pickle underlying class
-code.
+``BrineMethod`` is entirely name-based -- it doesn't try to pickle
+underlying class code.
 
 .. code:: python
 
@@ -141,20 +149,47 @@ code.
     # the original is unaffected
     getter() # ==> "Carrots"
 
-Unit testing
+Requirements
 ------------
 
-I've setup `travis-ci <https://travis-ci.org>`__ and
-`coveralls.io <https://coveralls.io>`__ for this project, so tests are
-run automatically, and coverage is computed then. However, if you'd like
-to run the tests manually, simply invoke them via
+-  `Python <http://python.org>`__ 2.6 or later (no support for Python 3,
+   the underlying function fields differ a bit)
+
+In addition, following tools are used in building, testing, or
+generating documentation from the project sources.
+
+-  `Setuptools <http://pythonhosted.org/setuptools/>`__
+-  `Coverage.py <http://nedbatchelder.com/code/coverage/>`__
+-  `GNU Make <http://www.gnu.org/software/make/>`__
+-  `Pandoc <http://johnmacfarlane.net/pandoc/>`__
+-  `Sphinx <http://sphinx-doc.org/>`__
+
+These are all available in most linux distributions (eg.
+`Fedora <http://fedoraproject.org/>`__), and for OSX via
+`MacPorts <http://www.macports.org/>`__.
+
+Building
+--------
+
+This module uses `setuptools <http://pythonhosted.org/setuptools/>`__,
+so simply run the following to build the project.
+
+.. code:: bash
+
+    python setup.py build
+
+Testing
+~~~~~~~
+
+Tests are written as ``unittest`` test cases. If you'd like to run the
+tests, simply invoke:
 
 .. code:: bash
 
     python setup.py test
 
-You may check code coverage by use of
-`coverage.py <http://nedbatchelder.com/code/coverage/>`__, invoked as
+You may check code coverage via
+`coverage.py <http://nedbatchelder.com/code/coverage/>`__, invoked as:
 
 .. code:: bash
 
@@ -164,19 +199,53 @@ You may check code coverage by use of
     # creates an html report from the above in htmlcov/index.html
     coverage html
 
+I've setup `travis-ci <https://travis-ci.org>`__ and
+`coveralls.io <https://coveralls.io>`__ for this project, so tests are
+run automatically, and coverage is computed then. Results are available
+online:
+
+-  `python-brine on
+   Travis-CI <https://travis-ci.org/obriencj/python-brine>`__
+-  `python-brine on
+   Coveralls.io <https://coveralls.io/r/obriencj/python-brine>`__
+
+Documentation
+~~~~~~~~~~~~~
+
+Documentation is built using `Sphinx <http://sphinx-doc.org/>`__.
+Invoking the following will produce HTML documentation in the
+``docs/_build/html`` directory.
+
+.. code:: bash
+
+    cd docs
+    make html
+
+Note that you will need the following installed to successfully build
+the documentation:
+
+Documentation is `also available
+online <http://obriencj.preoccupied.net/python-brine/>`__.
+
 TODO
 ----
 
 The following tasks need to be taken care of before we reach the point
-of tagging a 1.0.0 release and subsequently publishing to [PyPI].
+of tagging a 1.0.0 release and subsequently publishing to
+`PyPI <https://pypi.python.org/pypi>`__.
 
--  Should we allow users to extend BrineObject, in the same manner that
-   pickle can be (somewhat) extended today? TBD.
+-  Perhaps a PKI signing step (optionally) since we are in-fact sending
+   executable code around? TBD
+-  Should we allow users to extend ``BrineObject``, in the same manner
+   that pickle can be (somewhat) extended today? TBD.
 
-Contact
--------
+Author
+------
 
 Christopher O'Brien obriencj@gmail.com
+
+If this project interests you, you can read about more of my hacks and
+ideas on `on my blog <http://obriencj.preoccupied.net>`__.
 
 License
 -------
