@@ -18,23 +18,20 @@ Brine provides a way to wrap function objects so that they may be
 pickled.
 
 To truly pickle a function we need to be able to duplicate its code
-and its closures. By default, :mod:`pickle` will simply store the
+and its closures. By default, `pickle` will simply store the
 function's name, and then attempt to associate that with a function
 when unpickling. This of course fails when the function is a lambda or
 not otherwise defined at the top level.
 
 In order to mark a function, method, or partial for storage, use the
-:func:`brine` function to create a wrapper. Later, after pickling and
-unpickling the wrapper, call :func:`unbrine` to get a new copy of the
+`brine` function to create a wrapper. Later, after pickling and
+unpickling the wrapper, call `unbrine` to get a new copy of the
 original function.
 
-See the :mod:`brine.barrel` module in order to pickle recursive
-functions, mutually recursive functions, and the like.
-
 Loading this module has the side effect of registering a pickle
-handler for the :class:`CellType` type. This should be of low impact,
-as the only place this type is used is within function instances, and
-it is normally an unexposed type.
+handler for the `CellType` type. This should be of low impact, as the
+only place this type is used is within function instances, and it
+typically unexposed.
 
 :author: Christopher O'Brien  <obriencj@gmail.com>
 :license: LGPL v.3
@@ -51,9 +48,9 @@ import copy_reg
 import new
 
 
-__all__ = [ "BrineObject",
+__all__ = [ "brine", "unbrine",
+            "BrineObject",
             "BrineFunction", "BrineMethod", "BrinePartial",
-            "brine", "unbrine",
             "code_unnew", "code_new",
             "function_unnew", "function_new" ]
 
@@ -61,32 +58,34 @@ __all__ = [ "BrineObject",
 def brine(value):
 
     """
-    Wraps function, method, or partial so that they may be pickled.
+    Wrap an object so that it may be pickled. Behavior by type of
+    `value` is as follows:
 
-    There is no de-duplication or caching -- eg. if the same function
-    is in a list multiple times, each will be wrapped individually and
-    as a result will be duplicated when unbrined. For complex
-    situations like this, use a :class:`~brine.barrel.Barrel`
-
-    Methods and functions brined will not have the contents of their
-    cells brined -- eg. if an anonymous function refers to another
-    anonymous function, pickling will fail. Use a
-    :class:`~brine.barrel.Barrel` for such situations.
-
-    Behavior by type of `value` is as follows:
-
-    * :data:`~types.BuiltinFunctionType` or
-      :data:`~types.BuiltinMethodType` is unchanged
-    * :class:`~functools.partial` is wrapped as :class:`BrinePartial`
-    * :data:`~types.MethodType` is wrapped as :class:`BrineMethod`
-    * :data:`~types.FunctionType` is wrapped as :class:`BrineFunction`
-    * :class:`list` and :class:`tuple` are duplicated and their
-      contents are brined
-    * :class:`dict` is duplicated and its values are brined
+    * `builtin_function_or_method` is unchanged
+    * `partial` is wrapped as a `BrinePartial`
+    * `instancemethod` is wrapped as a `BrineMethod`
+    * `function` is wrapped as a `BrineFunction`
+    * `list` and `tuple` are duplicated and contents are brined
+    * `dict` is duplicated and its values are brined
     * all other types are returned unchanged
 
-    :param object value: The object or collection to wrap
-    :return: Depending on the type of `value` parameter
+    This function provides neither caching nor preservation of
+    uniqueness -- if the same function is in a list multiple times,
+    each will be wrapped individually and as a result will be
+    duplicated when unbrined.
+
+    In cases where uniqueness needs to be preserved, use a `Barrel`
+    instead.
+
+    Parameters
+    ----------
+    value : `object`
+      object to be brined for pickling
+
+    Returns
+    -------
+    wrapped : `object`
+      as defined by the `value` parameter
     """
 
     if isinstance(value, (BuiltinFunctionType, BuiltinMethodType)):
@@ -111,23 +110,28 @@ def brine(value):
 def unbrine(value, with_globals=None):
 
     """
-    Unwrap a `value` previously wrapped with :func:`~brine.brine`
+    Unwrap a `value` previously wrapped with the `brine`
+    function. Behavior by type of `value` is as follows:
 
-    Behavior by type of `value` is as follows:
+    * `BrinePartial` unwraps to a `partial`
+    * `BrineMethod` unwraps to a `instancemethod`
+    * `BrineFunction` unwraps to a `function`
+    * `list` and `tuple` are duplicated and contents unbrined
+    * `dict` is duplicated and its values are unbrined
 
-    * :class:`BrinePartial` unwraps to :class:`~functools.partial`
-    * :class:`BrineMethod` unwraps to :data:`~types.MethodType`
-    * :class:`BrineFunction` unwraps to :data:`~types.FunctionType`
-    * :class:`list` and :class:`tuple` are duplicated with their contents
-      unbrined
-    * :class:`dict` is duplicated and its values are unbrined
+    Parameters
+    ----------
+    value : `object`
+      value to be unbrined
 
-    :param value object: object wrapped prior via :func:`brine`
-    :param with_globals: globals dictionary to use when recreating
-      functions. Default is the same as :func:`globals`
-    :type with_globals: `None` or :class:`dict`
-    :return: An unwrapped value, depending on the type of the `value`
-      parameter
+    with_globals : `dict` or `None`
+      globals dictionary to use when recreating functions. `None` is
+      the same as `globals()`
+
+    Returns
+    -------
+    unwrapped : `object`
+      as defined by the type of `value`
     """
 
     glbls = globals() if with_globals is None else with_globals
@@ -227,21 +231,75 @@ def function_new(code, with_globals, name, defaults, closure):
 class BrineObject(object): # pragma: no cover
 
     """
-    Abstract base class for brine wrappers.
+    Abstract base class for brine wrappers. Defines the interface
+    required for brine.
+
+    - When instantiated, should accept a `value` to wrap
+    - The `get` method should return a new copy of the wrapped `value`
+    - Must define the `__getstate__` and `__setstate__` methods for
+      `pickle` support.
     """
 
     __metaclass__ = ABCMeta
 
     @abstractmethod
+    def __init__(self, value):
+        """
+        Wrap `value` so that it may be pickled.
+
+        Parameters
+        ----------
+        value : `object`
+            the instance needing to be wrapped for pickling
+        """
+        pass
+
+    @abstractmethod
     def __getstate__(self):
+        """
+        Special method used by a `pickle.Pickler` to serialize an instance
+        of this class.
+
+        Returns
+        -------
+        data : `tuple`
+            information to provide to the pickle API. Should be the
+            same as what is expected in the `__setstate__` method
+        """
         pass
 
     @abstractmethod
     def __setstate__(self, data):
+        """
+        Special method used by a `pickle.Unpickler` to deserialize an
+        instance of this class. Should accept the same data returned
+        by the `__getstate__` method
+
+        Parameters
+        ----------
+        data : `tuple`
+            information provided by the pickle API to instantiate a
+            new copy
+        """
         pass
 
     @abstractmethod
     def get(self, with_globals=None):
+        """
+        Recreate a copy of the initial brined value
+
+        Parameters
+        ----------
+        with_globals : `dict` or `None`
+            The global namespace to be used when recreating the
+            value. If None will be presumed to be `globals()` :type
+            with_globals: :class:`dict` or :data:`None`
+
+        Returns
+        -------
+        value : `object`
+            A copy of the `value` originally passed to `__init__`
+        """
         pass
 
 
@@ -261,32 +319,17 @@ class BrineFunction(BrineObject):
     module rather than instantiating or accessing this class directly
     """
 
-    def __init__(self, function=None):
-        self._unfunc = ()
-        self._fdict = {}
-
-        if function:
-            self.set(function)
+    def __init__(self, function):
+        self._unfunc = self._function_unnew(function)
+        self._fdict = dict(function.__dict__)
 
 
     def __getstate__(self):
-        # used to pickle
         return self._unfunc, self._fdict
 
 
     def __setstate__(self, state):
-        # used to unpickle
         self._unfunc, self._fdict = state
-
-
-    def set(self, function):
-
-        """
-        set the function to be pickled by this instance
-        """
-
-        self._unfunc = self._function_unnew(function)
-        self._fdict = dict(function.__dict__)
 
 
     def _function_unnew(self, function):
@@ -306,10 +349,6 @@ class BrineFunction(BrineObject):
 
 
     def get(self, with_globals=None):
-
-        """
-        create a copy of the original function
-        """
 
         glbls = globals() if with_globals is None else with_globals
 
@@ -344,20 +383,9 @@ class BrineMethod(BrineObject):
     access this class directly.
     """
 
-    def __init__(self, boundmethod=None):
-        self._im_self = None
-        self._funcname = None
-        if boundmethod is not None:
-            self.set(boundmethod)
-
-
-    def set(self, method):
-        self._im_self = method.im_self
-        self._funcname = method.im_func.__name__
-
-
-    def get(self, with_globals=None):
-        return getattr(self._im_self, self._funcname)
+    def __init__(self, boundmethod):
+        self._im_self = boundmethod.im_self
+        self._funcname = boundmethod.im_func.__name__
 
 
     def __getstate__(self):
@@ -369,6 +397,10 @@ class BrineMethod(BrineObject):
         self._funcname = state[1]
 
 
+    def get(self, with_globals=None):
+        return getattr(self._im_self, self._funcname)
+
+
 class BrinePartial(BrineObject):
 
     """
@@ -376,15 +408,7 @@ class BrinePartial(BrineObject):
     function or method that is otherwise unsupported by pickle.
     """
 
-    def __init__(self, part=None):
-        self.func = None
-        self.args = None
-        self.keywords = None
-        if part is not None:
-            self.set(part)
-
-
-    def set(self, part):
+    def __init__(self, part):
         self.func = brine(part.func)
         self.args = brine(part.args or None)
         self.keywords = brine(part.keywords or None)
