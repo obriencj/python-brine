@@ -6,5 +6,5 @@ Module contents
 
 .. automodule:: brine.barrel
     :members:
-    :undoc-members:
+    :inherited-members:
     :show-inheritance:
