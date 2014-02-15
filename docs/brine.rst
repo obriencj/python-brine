@@ -12,14 +12,14 @@ Module brine
 
   Classes
   -------
-  .. autoclass:: brine.BrineObject
+  .. autoclass:: brine.BrinedObject
     :members: get,__init__,__getstate__,__setstate__
     :member-order: bysource
-  .. autoclass:: brine.BrineFunction
+  .. autoclass:: brine.BrinedFunction
     :show-inheritance:
-  .. autoclass:: brine.BrineMethod
+  .. autoclass:: brine.BrinedMethod
     :show-inheritance:
-  .. autoclass:: brine.BrinePartial
+  .. autoclass:: brine.BrinedPartial
     :show-inheritance:
 
 See Also
