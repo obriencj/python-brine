@@ -83,6 +83,15 @@ class BarreledObject(BrinedObject):
         return self._barrel._unbrine(brined_value)
 
 
+    def __getstate__(self):
+        return (self._barrel, ) + super(BarreledObject, self).__getstate__()
+
+
+    def __setstate__(self, state):
+        self._barrel = state[0]
+        super(BarreledObject, self).__setstate__(state[1:])
+
+
 class BarreledFunction(BarreledObject, BrinedFunction):
 
     """
@@ -90,15 +99,6 @@ class BarreledFunction(BarreledObject, BrinedFunction):
     automatically around `function` instances in a `Barrel` when it is
     pickled.
     """
-
-    def __getstate__(self):
-        return (self._barrel, ) + super(BarreledFunction, self).__getstate__()
-
-
-    def __setstate__(self, state):
-        self._barrel = state[0]
-        super(BarreledFunction, self).__setstate__(state[1:])
-
 
     def _brine_cell(self, cell):
         val = cell_get_value(cell)
@@ -112,15 +112,6 @@ class BarreledFunction(BarreledObject, BrinedFunction):
         cell_set_value(cell, ubval)
 
 
-    def _function_unnew(self, function):
-        self._barrel._putcache(function, self)
-
-        ufunc = super(BarreledFunction, self)._function_unnew(function)
-        if ufunc[4] is not None:
-            ufunc[4] = tuple(imap(self._brine_cell, ufunc[4]))
-        return ufunc
-
-
     def _code_unnew(self, code):
         uncode = super(BarreledFunction, self)._code_unnew(code)
         uncode[5] = tuple(imap(self.brine_related, uncode[5]))
@@ -130,6 +121,15 @@ class BarreledFunction(BarreledObject, BrinedFunction):
     def _code_new(self, with_globals, ucode):
         ucode[5] = tuple(imap(self.unbrine_related, ucode[5]))
         return super(BarreledFunction, self)._code_new(with_globals, ucode)
+
+
+    def _function_unnew(self, function):
+        self._barrel._putcache(function, self)
+
+        ufunc = super(BarreledFunction, self)._function_unnew(function)
+        if ufunc[4] is not None:
+            ufunc[4] = tuple(imap(self._brine_cell, ufunc[4]))
+        return ufunc
 
 
     def _function_new(self, with_globals, ufunc):
@@ -175,33 +175,24 @@ class BarreledPartial(BarreledObject, BrinedPartial):
         self._barrel = barrel
 
         brine = self.brine_related
-        self.func = brine(part.func)
-        self.args = brine(part.args or None)
-        self.keywords = brine(part.keywords or None)
+        self._func = brine(part.func)
+        self._args = brine(part.args or None)
+        self._keywords = brine(part.keywords or None)
 
 
     def get(self, with_globals=None):
         unbrine = self.unbrine_related
-        func = unbrine(self.func)
-        args = unbrine(self.args or tuple())
-        kwds = unbrine(self.keywords or dict())
+        func = unbrine(self._func)
+        args = unbrine(self._args or tuple())
+        kwds = unbrine(self._keywords or dict())
         return partial(func, *args, **kwds)
-
-
-    def __getstate__(self):
-        return (self._barrel, ) + super(BarreledPartial, self).__getstate__()
-
-
-    def __setstate__(self, data):
-        self._barrel = data[0]
-        super(BarreledPartial, self).__setstate__(data[1:])
 
 
 class Barrel(object):
 
     """
-    A dict-like mapping supporting automatic brining of contained
-    values when pickled.
+    Mapping supporting automatic brining of contained values when
+    pickled. Provides the `dict` interface special methods.
     """
 
     def __init__(self, **values):
@@ -345,8 +336,8 @@ class Barrel(object):
         returning an already computed value.
 
         If you retrieved a value from this barrel and want to load a
-        new copy (possibly with different globals), calling reset() is
-        a way to achieve such.
+        new copy (possibly with different globals), calling `reset()`
+        is a way to achieve such.
         """
 
         if self._brined is None:

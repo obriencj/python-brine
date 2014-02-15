@@ -21,9 +21,9 @@ Unit tests for brine
 """
 
 
-from brine import function_unnew, function_new
-from brine import code_unnew, code_new
 from brine import brine, unbrine
+from brine import code_unnew, code_new
+from brine import function_unnew, function_new
 from cStringIO import StringIO
 from functools import partial
 from pickle import Pickler, Unpickler
@@ -91,7 +91,6 @@ class TestUnnew(unittest.TestCase):
 
 class TestBrine(unittest.TestCase):
 
-
     def test_brine_other(self):
         # see what happens when we encounter un-brine-able types
         data_built = ( map, zip, globals )
@@ -105,13 +104,12 @@ class TestBrine(unittest.TestCase):
         ndata_types = ndata[1]
         ndata_stuff = ndata[2]
 
-        assert(data_built == ndata_built)
-        assert(data_types == ndata_types)
-        assert(data_stuff == ndata_stuff)
+        self.assertEqual(data_built, ndata_built)
+        self.assertEqual(data_types, ndata_types)
+        self.assertEqual(data_stuff, ndata_stuff)
 
 
     def test_brine_function(self):
-
         # this is the function we'll be duplicating.
         func_a = make_adder(8)
 
@@ -126,59 +124,59 @@ class TestBrine(unittest.TestCase):
         func_a = make_adder(8)
         func_b = make_adder(9)
 
-        assert(func_a() == 8)
-        assert(func_b() == 9)
+        self.assertEqual(func_a(), 8)
+        self.assertEqual(func_b(), 9)
 
         l = { "func_a": func_a, "func_b": func_b }
         l = unbrine(pickle_unpickle(brine(l)))
         func_a2 = l["func_a"]
         func_b2 = l["func_b"]
 
-        assert(func_a(5) == func_a2(5))
-        assert(func_b(5) == func_b2(5))
+        self.assertEqual(func_a(5), func_a2(5))
+        self.assertEqual(func_b(5), func_b2(5))
 
 
     def test_brine_function_list(self):
         func_a = make_adder(8)
         func_b = make_adder(9)
 
-        assert(func_a() == 8)
-        assert(func_b() == 9)
+        self.assertEqual(func_a(), 8)
+        self.assertEqual(func_b(), 9)
 
         l = [func_a, func_b]
         l = unbrine(pickle_unpickle(brine(l)))
 
-        assert(type(l) == list)
+        self.assertIsInstance(l, list)
         func_a2, func_b2 = l
 
-        assert(func_a(5) == func_a2(5))
-        assert(func_b(5) == func_b2(5))
+        self.assertEqual(func_a(5), func_a2(5))
+        self.assertEqual(func_b(5), func_b2(5))
 
 
     def test_brine_function_tuple(self):
         func_a = make_adder(8)
         func_b = make_adder(9)
 
-        assert(func_a() == 8)
-        assert(func_b() == 9)
+        self.assertEqual(func_a(), 8)
+        self.assertEqual(func_b(), 9)
 
         l = (func_a, func_b)
         l = unbrine(pickle_unpickle(brine(l)))
 
-        assert(type(l) == tuple)
+        self.assertIsInstance(l, tuple)
         func_a2, func_b2 = l
 
-        assert(func_a(5) == func_a2(5))
-        assert(func_b(5) == func_b2(5))
+        self.assertEqual(func_a(5), func_a2(5))
+        self.assertEqual(func_b(5), func_b2(5))
 
 
     def test_brine_pair_list(self):
         getter, setter = make_pair("Hello World")
 
         # show that they work as expected
-        assert(getter() == "Hello World")
+        self.assertEqual(getter(), "Hello World")
         setter("Tacos")
-        assert(getter() == "Tacos")
+        self.assertEqual(getter(), "Tacos")
 
         # now pickle/unpickle to create duplicates of the original
         # functions
@@ -187,11 +185,11 @@ class TestBrine(unittest.TestCase):
         bgetter, bsetter = tmp
 
         # show that these duplicates successfully pickled the
-        assert(bgetter() == "Tacos")
+        self.assertEqual(bgetter(), "Tacos")
         bsetter("Hello World")
-        assert(bgetter() == "Hello World")
+        self.assertEqual(bgetter(), "Hello World")
 
-        assert(getter() == "Tacos")
+        self.assertEqual(getter(), "Tacos")
 
 
     def test_brine_method_list(self):
@@ -202,9 +200,9 @@ class TestBrine(unittest.TestCase):
         setter = o.set_value
 
         # show that they work as expected
-        assert(getter() == "Hello World")
+        self.assertEqual(getter(), "Hello World")
         setter("Tacos")
-        assert(getter() == "Tacos")
+        self.assertEqual(getter(), "Tacos")
 
         # now pickle/unpickle to create duplicates of the original
         # bound methods
@@ -213,54 +211,54 @@ class TestBrine(unittest.TestCase):
         bgetter, bsetter = tmp
 
         # show that these duplicates successfully pickled the
-        assert(bgetter() == "Tacos")
+        self.assertEqual(bgetter(), "Tacos")
         bsetter("Hello World")
-        assert(bgetter() == "Hello World")
+        self.assertEqual(bgetter(), "Hello World")
 
-        assert(getter() == "Tacos")
+        self.assertEqual(getter(), "Tacos")
 
 
     def test_brine_partial_function(self):
         add_x_y = lambda x, y: (x + y)
         add_8 = partial(add_x_y, 8)
 
-        assert(type(add_8) == partial)
-        assert(add_8(10) == 18)
+        self.assertIsInstance(add_8, partial)
+        self.assertEqual(add_8(10), 18)
 
         new_add_8 = unbrine(pickle_unpickle(brine(add_8)))
 
-        assert(add_8 != new_add_8)
-        assert(type(new_add_8) == partial)
-        assert(add_8(11) == 19)
+        self.assertNotEqual(add_8, new_add_8)
+        self.assertIsInstance(new_add_8, partial)
+        self.assertEqual(add_8(11), 19)
 
 
     def test_brine_partial_method(self):
         o = Obj("Hungry")
 
-        assert(o.get_value() == "Hungry")
+        self.assertEqual(o.get_value(), "Hungry")
 
         getter = o.get_value
         give_cake = partial(o.set_value, "Cake")
         give_taco = partial(o.set_value, "Taco")
 
         give_cake()
-        assert(getter() == "Cake")
+        self.assertEqual(getter(), "Cake")
         give_taco()
-        assert(getter() == "Taco")
+        self.assertEqual(getter(), "Taco")
 
         tmp = [getter, give_cake, give_taco]
         tmp = unbrine(pickle_unpickle(brine(tmp)))
         ngetter, ngive_cake, ngive_taco = tmp
 
-        assert(ngetter() == "Taco")
+        self.assertEqual(ngetter(), "Taco")
         ngive_cake()
-        assert(ngetter() == "Cake")
+        self.assertEqual(ngetter(), "Cake")
 
         # check that they're not interfering with one-another
-        assert(ngetter() != getter())
+        self.assertNotEqual(ngetter(), getter())
 
         ngive_taco()
-        assert(ngetter() == "Taco")
+        self.assertEqual(ngetter(), "Taco")
 
 
 #

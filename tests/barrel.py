@@ -29,7 +29,7 @@ from pickle import Pickler, Unpickler
 import unittest
 
 
-from . import make_pair, pickle_unpickle, Obj
+from . import make_adder, make_pair, pickle_unpickle, Obj
 
 
 def make_incrementor(start=0, by=5):
@@ -56,10 +56,10 @@ class TestBarrel(unittest.TestCase):
 
         fives = make_incrementor(0, 5)
 
-        assert(callable(fives))
-        assert(fives() == 0)
-        assert(fives() == 5)
-        assert(fives() == 10)
+        self.assertTrue(callable(fives))
+        self.assertEqual(fives(), 0)
+        self.assertEqual(fives(), 5)
+        self.assertEqual(fives(), 10)
 
         ba = Barrel()
         ba["fives"] = fives
@@ -68,18 +68,18 @@ class TestBarrel(unittest.TestCase):
 
         new_fives = new_ba["fives"]
 
-        assert(callable(new_fives))
-        assert(new_fives() == 15)
-        assert(new_fives() == 20)
-        assert(new_fives() == 25)
+        self.assertTrue(callable(new_fives))
+        self.assertEqual(new_fives(), 15)
+        self.assertEqual(new_fives(), 20)
+        self.assertEqual(new_fives(), 25)
 
 
     def test_anon_recursive_inner(self):
 
         add_8 = make_recursive_adder(8)
 
-        assert(callable(add_8))
-        assert(add_8(10) == 18)
+        self.assertTrue(callable(add_8))
+        self.assertEqual(add_8(10), 18)
 
         ba = Barrel()
         ba["add_8"] = add_8
@@ -88,17 +88,17 @@ class TestBarrel(unittest.TestCase):
 
         new_add_8 = new_ba["add_8"]
 
-        assert(callable(new_add_8))
-        assert(new_add_8(10) == 18)
+        self.assertTrue(callable(new_add_8))
+        self.assertEqual(new_add_8(10), 18)
 
 
     def test_shared_cell(self):
 
         getter, setter = make_pair(8)
-        assert(getter() == 8)
+        self.assertEqual(getter(), 8)
 
         setter(9)
-        assert(getter() == 9)
+        self.assertEqual(getter(), 9)
 
         ba = Barrel()
         ba["getter"] = getter
@@ -110,19 +110,19 @@ class TestBarrel(unittest.TestCase):
         new_setter = new_ba["setter"]
 
         # check the initial value of the new pair
-        assert(new_getter() == 9)
+        self.assertEqual(new_getter(), 9)
 
         # change the new pair and check that it did indeed change
         new_setter(10)
-        assert(new_getter() == 10)
+        self.assertEqual(new_getter(), 10)
 
         # the old pair isn't effected by the new pair
-        assert(getter() == 9)
+        self.assertEqual(getter(), 9)
         setter(7)
-        assert(getter() == 7)
+        self.assertEqual(getter(), 7)
 
         # and show that we haven't effected our new pair
-        assert(new_getter() == 10)
+        self.assertEqual(new_getter(), 10)
 
 
     def test_contained_shared(self):
@@ -134,9 +134,9 @@ class TestBarrel(unittest.TestCase):
         getter_b, setter_b = make_pair("B")
         getter_c, setter_c = make_pair("C")
 
-        assert(getter_a() == "A")
-        assert(getter_b() == "B")
-        assert(getter_c() == "C")
+        self.assertEqual(getter_a(), "A")
+        self.assertEqual(getter_b(), "B")
+        self.assertEqual(getter_c(), "C")
 
         ba = Barrel()
         ba["pair_a"] = (getter_a, setter_a)
@@ -157,32 +157,32 @@ class TestBarrel(unittest.TestCase):
         getter_nb2, setter_nb2 = newpairs['b']
         getter_nc2, setter_nc2 = newpairs['c']
 
-        assert(getter_na1() == "A")
-        assert(getter_nb1() == "B")
-        assert(getter_nc1() == "C")
-        assert(getter_na2() == "A")
-        assert(getter_nb2() == "B")
-        assert(getter_nc2() == "C")
+        self.assertEqual(getter_na1(), "A")
+        self.assertEqual(getter_nb1(), "B")
+        self.assertEqual(getter_nc1(), "C")
+        self.assertEqual(getter_na2(), "A")
+        self.assertEqual(getter_nb2(), "B")
+        self.assertEqual(getter_nc2(), "C")
 
         setter_na1("_A")
         setter_nb1("_B")
         setter_nc1("_C")
-        assert(getter_na1() == "_A")
-        assert(getter_nb1() == "_B")
-        assert(getter_nc1() == "_C")
-        assert(getter_na2() == "_A")
-        assert(getter_nb2() == "_B")
-        assert(getter_nc2() == "_C")
+        self.assertEqual(getter_na1(), "_A")
+        self.assertEqual(getter_nb1(), "_B")
+        self.assertEqual(getter_nc1(), "_C")
+        self.assertEqual(getter_na2(), "_A")
+        self.assertEqual(getter_nb2(), "_B")
+        self.assertEqual(getter_nc2(), "_C")
 
         setter_na2("A_")
         setter_nb2("B_")
         setter_nc2("C_")
-        assert(getter_na1() == "A_")
-        assert(getter_nb1() == "B_")
-        assert(getter_nc1() == "C_")
-        assert(getter_na2() == "A_")
-        assert(getter_nb2() == "B_")
-        assert(getter_nc2() == "C_")
+        self.assertEqual(getter_na1(), "A_")
+        self.assertEqual(getter_nb1(), "B_")
+        self.assertEqual(getter_nc1(), "C_")
+        self.assertEqual(getter_na2(), "A_")
+        self.assertEqual(getter_nb2(), "B_")
+        self.assertEqual(getter_nc2(), "C_")
 
 
     def test_barrel_method_list(self):
@@ -193,9 +193,9 @@ class TestBarrel(unittest.TestCase):
         setter = o.set_value
 
         # show that they work as expected
-        assert(getter() == "Hello World")
+        self.assertEqual(getter(), "Hello World")
         setter("Tacos")
-        assert(getter() == "Tacos")
+        self.assertEqual(getter(), "Tacos")
 
         # now pickle/unpickle to create duplicates of the original
         # bound methods
@@ -219,13 +219,13 @@ class TestBarrel(unittest.TestCase):
         self.assertEqual(nsetter1, nsetter2)
 
         # same self class
-        assert(type(ngetter1.im_self) == type(getter.im_self))
-        assert(type(nsetter1.im_self) == type(setter.im_self))
+        self.assertEqual(type(ngetter1.im_self), type(getter.im_self))
+        self.assertEqual(type(nsetter1.im_self), type(setter.im_self))
 
         # show that these duplicates successfully pickled
-        assert(ngetter1() == "Tacos")
+        self.assertEqual(ngetter1(), "Tacos")
         nsetter1("Hello World")
-        assert(ngetter1() == "Hello World")
+        self.assertEqual(ngetter1(), "Hello World")
 
         # show we're not connected to the original
         assert(getter() == "Tacos")
@@ -247,8 +247,7 @@ class TestBarrel(unittest.TestCase):
 
         # the managed interface for assertRaises isn't added until
         # Python 2.7, and we try to support 2.6
-        foo = lambda: ba["Hello"]
-        self.assertRaises(KeyError, foo)
+        self.assertRaises(KeyError, lambda: ba["Hello"])
 
         ba.clear()
         self.assertEqual(list(iter(ba)), [])
@@ -287,9 +286,9 @@ class TestBarrel(unittest.TestCase):
         ndata_types = new_ba["data_types"]
         ndata_stuff = new_ba["data_stuff"]
 
-        assert(data_built == ndata_built)
-        assert(data_types == ndata_types)
-        assert(data_stuff == ndata_stuff)
+        self.assertEqual(data_built, ndata_built)
+        self.assertEqual(data_types, ndata_types)
+        self.assertEqual(data_stuff, ndata_stuff)
 
 
     def test_barrel_reset_no_globals(self):
@@ -342,8 +341,8 @@ class TestBarrel(unittest.TestCase):
         add_x_y = lambda x, y: (x + y)
         add_8 = partial(add_x_y, 8)
 
-        assert(type(add_8) == partial)
-        assert(add_8(10) == 18)
+        self.assertIsInstance(add_8, partial)
+        self.assertEqual(add_8(10), 18)
 
         ba = Barrel()
         ba["add_8"] = add_8
@@ -351,24 +350,24 @@ class TestBarrel(unittest.TestCase):
         new_ba = pickle_unpickle(ba)
         new_add_8 = new_ba["add_8"]
 
-        assert(add_8 != new_add_8)
-        assert(type(new_add_8) == partial)
-        assert(add_8(11) == 19)
+        self.assertNotEqual(add_8, new_add_8)
+        self.assertIsInstance(new_add_8, partial)
+        self.assertEqual(add_8(11), 19)
 
 
     def test_barrel_partial_method(self):
         o = Obj("Hungry")
 
-        assert(o.get_value() == "Hungry")
+        self.assertEqual(o.get_value(), "Hungry")
 
         getter = o.get_value
         give_cake = partial(o.set_value, "Cake")
         give_taco = partial(o.set_value, "Taco")
 
         give_cake()
-        assert(getter() == "Cake")
+        self.assertEqual(getter(), "Cake")
         give_taco()
-        assert(getter() == "Taco")
+        self.assertEqual(getter(), "Taco")
 
         ba = Barrel()
         ba["getter"] = getter
@@ -380,15 +379,15 @@ class TestBarrel(unittest.TestCase):
         ngive_cake = new_ba["cake"]
         ngive_taco = new_ba["taco"]
 
-        assert(ngetter() == "Taco")
+        self.assertEqual(ngetter(), "Taco")
         ngive_cake()
-        assert(ngetter() == "Cake")
+        self.assertEqual(ngetter(), "Cake")
 
         # check that they're not interfering with one-another
-        assert(ngetter() != getter())
+        self.assertNotEqual(ngetter(), getter())
 
         ngive_taco()
-        assert(ngetter() == "Taco")
+        self.assertEqual(ngetter(), "Taco")
 
 
     def test_barrel_cache_reset(self):
@@ -440,6 +439,25 @@ class TestBarrel(unittest.TestCase):
         new_ba.reset()
         rval = list(new_ba.itervalues())
         self.assertEqual(lval, rval)
+
+
+    def test_barrel_uniqueness(self):
+        add_8 = make_adder(8)
+        add_9 = make_adder(9)
+
+        ba = Barrel(add_8=add_8, add_9=add_9, a8=add_8, a9=add_9)
+
+        self.assertEqual(ba["add_8"], ba["a8"])
+        self.assertEqual(ba["add_9"], ba["a9"])
+
+        new_ba = pickle_unpickle(ba)
+
+        self.assertEqual(new_ba["add_8"], new_ba["a8"])
+        self.assertEqual(new_ba["add_9"], new_ba["a9"])
+
+        self.assertNotEqual(new_ba["add_8"], new_ba["a9"])
+        self.assertNotEqual(new_ba["add_9"], new_ba["a8"])
+
 
 #
 # The end.

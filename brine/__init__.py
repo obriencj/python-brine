@@ -234,9 +234,9 @@ class BrinedObject(object): # pragma: no cover
     Abstract base class for brine wrappers. Defines the interface
     required for brine.
 
-    - When instantiated, should accept a `value` to wrap
-    - The `get` method should return a new copy of the wrapped `value`
-    - Must define the `__getstate__` and `__setstate__` methods for
+    * When instantiated, should accept a `value` to wrap
+    * The `get` method should return a new copy of the wrapped `value`
+    * Must define the `__getstate__` and `__setstate__` methods for
       `pickle` support.
     """
 
@@ -378,9 +378,9 @@ class BrinedMethod(BrinedObject):
     refuses to operate on bound instance method object. This wrapper
     will still require that the object instance supports pickling,
     which in turn requires that the class be defined at the top level.
-    As with the BrineFunction class, it is better to use the brine and
-    unbrine functions from this module rather than to instantiate or
-    access this class directly.
+    As with the `BrineFunction` class, it is better to use the `brine`
+    and `unbrine` functions from this module rather than to create an
+    instance of this class directly.
     """
 
     def __init__(self, boundmethod):
@@ -409,27 +409,27 @@ class BrinedPartial(BrinedObject):
     """
 
     def __init__(self, part):
-        self.func = brine(part.func)
-        self.args = brine(part.args or None)
-        self.keywords = brine(part.keywords or None)
+        self._func = brine(part.func)
+        self._args = brine(part.args or None)
+        self._keywords = brine(part.keywords or None)
 
 
     def get(self, with_globals=None):
 
         glbls = globals() if with_globals is None else with_globals
 
-        func = unbrine(self.func, with_globals)
-        args = unbrine(self.args or tuple(), with_globals)
-        kwds = unbrine(self.keywords or dict(), with_globals)
+        func = unbrine(self._func, with_globals)
+        args = unbrine(self._args or tuple(), with_globals)
+        kwds = unbrine(self._keywords or dict(), with_globals)
         return partial(func, *args, **kwds)
 
 
     def __getstate__(self):
-        return (self.func, self.args, self.keywords)
+        return (self._func, self._args, self._keywords)
 
 
     def __setstate__(self, data):
-        self.func, self.args, self.keywords = data
+        self._func, self._args, self._keywords = data
 
 
 # let's give the pickle module knowledge of how to load and dump Cell
