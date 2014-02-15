@@ -10,8 +10,8 @@ Module brine
   .. autofunction:: brine.brine
   .. autofunction:: brine.unbrine
 
-  Classes
-  -------
+  Wrapper Classes
+  ---------------
   .. autoclass:: brine.BrinedObject
     :members: get,__init__,__getstate__,__setstate__
     :member-order: bysource

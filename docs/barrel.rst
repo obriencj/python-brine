@@ -12,3 +12,13 @@ Module brine.barrel
 
     Wrapper Classes
     ---------------
+    .. autoclass:: brine.barrel.BarreledObject
+      :inherited-members:
+      :members: get,__init__
+      :member-order: bysource
+    .. autoclass:: brine.barrel.BarreledFunction
+      :show-inheritance:
+    .. autoclass:: brine.barrel.BarreledMethod
+      :show-inheritance:
+    .. autoclass:: brine.barrel.BarreledPartial
+      :show-inheritance:
