@@ -49,8 +49,8 @@ import new
 
 
 __all__ = [ "brine", "unbrine",
-            "BrineObject",
-            "BrineFunction", "BrineMethod", "BrinePartial",
+            "BrinedObject",
+            "BrinedFunction", "BrinedMethod", "BrinedPartial",
             "code_unnew", "code_new",
             "function_unnew", "function_new" ]
 
@@ -91,11 +91,11 @@ def brine(value):
     if isinstance(value, (BuiltinFunctionType, BuiltinMethodType)):
         return value
     elif isinstance(value, partial):
-        return BrinePartial(value)
+        return BrinedPartial(value)
     elif isinstance(value, MethodType):
-        return BrineMethod(value)
+        return BrinedMethod(value)
     elif isinstance(value, FunctionType):
-        return BrineFunction(value)
+        return BrinedFunction(value)
     elif isinstance(value, (list, tuple)):
         # create a duplicate of the collection with brined internals
         ty = type(value)
@@ -136,7 +136,7 @@ def unbrine(value, with_globals=None):
 
     glbls = globals() if with_globals is None else with_globals
 
-    if isinstance(value, BrineObject):
+    if isinstance(value, BrinedObject):
         return value.get(glbls)
     elif isinstance(value, (list, tuple)):
         ty = type(value)
@@ -228,7 +228,7 @@ def function_new(code, with_globals, name, defaults, closure):
     return new.function(code, with_globals, name, defaults, closure)
 
 
-class BrineObject(object): # pragma: no cover
+class BrinedObject(object): # pragma: no cover
 
     """
     Abstract base class for brine wrappers. Defines the interface
@@ -311,7 +311,7 @@ class BrineObject(object): # pragma: no cover
 # unpickling
 
 
-class BrineFunction(BrineObject):
+class BrinedFunction(BrinedObject):
 
     """
     Wraps a function so that it may be pickled. For the most part
@@ -371,7 +371,7 @@ class BrineFunction(BrineObject):
         return code_new(*uncode)
 
 
-class BrineMethod(BrineObject):
+class BrinedMethod(BrinedObject):
 
     """
     Wraps a bound method so that it can be pickled. By default pickle
@@ -401,7 +401,7 @@ class BrineMethod(BrineObject):
         return getattr(self._im_self, self._funcname)
 
 
-class BrinePartial(BrineObject):
+class BrinedPartial(BrinedObject):
 
     """
     Wrap a :class:`functools.partial` instance that references a

@@ -14,15 +14,16 @@
 
 
 """
-Provides a way to Brine a number of interrelated functions, using a
-Barrel
+Provides a way to wrap multiple interrelated functions, while
+preserving uniqueness.
 
 :author: Christopher O'Brien  <obriencj@gmail.com>
 :license: LGPL v.3
 """
 
 
-from brine import BrineObject, BrineFunction, BrineMethod, BrinePartial
+from abc import ABCMeta
+from brine import BrinedObject, BrinedFunction, BrinedMethod, BrinedPartial
 from brine import brine, unbrine
 from brine._cellwork import cell_get_value, cell_set_value, cell_from_value
 from functools import partial
@@ -30,10 +31,28 @@ from itertools import imap
 from types import BuiltinFunctionType, FunctionType, MethodType
 
 
-__all__ = [ "Barrel", "BarrelFunction", "BarrelMethod", "BarrelPartial" ]
+__all__ = [ "Barrel" ]
 
 
-class BarrelFunction(BrineFunction):
+class BarreledObject(BrinedObject):
+
+    __metaclass__ = ABCMeta
+
+
+    def __init__(self, barrel, value):
+        self._barrel = barrel
+        super(BarreledObject, self).__init__(value)
+
+
+    def brine_related(self, value):
+        return self._barrel._brine(value)
+
+
+    def unbrine_related(self, brined_value):
+        return self._barrel._unbrine(brined_value)
+
+
+class BarreledFunction(BarreledObject, BrinedFunction):
 
     """
     A brined function in a barrel. This function may be recursive, or
@@ -42,54 +61,50 @@ class BarrelFunction(BrineFunction):
     directly.
     """
 
-    def __init__(self, barrel, function):
-        self._barrel = barrel
-        super(BarrelFunction, self).__init__(function=function)
-
 
     def __getstate__(self):
-        return (self._barrel, ) + super(BarrelFunction, self).__getstate__()
+        return (self._barrel, ) + super(BarreledFunction, self).__getstate__()
 
 
     def __setstate__(self, state):
         self._barrel = state[0]
-        super(BarrelFunction, self).__setstate__(state[1:])
+        super(BarreledFunction, self).__setstate__(state[1:])
 
 
     def _brine_cell(self, cell):
         val = cell_get_value(cell)
-        bval = self._barrel._brine(val)
+        bval = self.brine_related(val)
         return cell_from_value(bval)
 
 
     def _unbrine_cell(self, with_globals, cell):
         val = cell_get_value(cell)
-        ubval = self._barrel._unbrine(val)
+        ubval = self.unbrine_related(val)
         cell_set_value(cell, ubval)
 
 
     def _function_unnew(self, function):
         self._barrel._putcache(function, self)
 
-        ufunc = super(BarrelFunction, self)._function_unnew(function)
+        ufunc = super(BarreledFunction, self)._function_unnew(function)
         if ufunc[4] is not None:
             ufunc[4] = tuple(imap(self._brine_cell, ufunc[4]))
         return ufunc
 
 
     def _code_unnew(self, code):
-        uncode = super(BarrelFunction, self)._code_unnew(code)
-        uncode[5] = tuple(imap(self._barrel._brine, uncode[5]))
+        uncode = super(BarreledFunction, self)._code_unnew(code)
+        uncode[5] = tuple(imap(self.brine_related, uncode[5]))
         return uncode
 
 
     def _code_new(self, with_globals, ucode):
-        ucode[5] = tuple(imap(self._barrel._unbrine, ucode[5]))
-        return super(BarrelFunction, self)._code_new(with_globals, ucode)
+        ucode[5] = tuple(imap(self.unbrine_related, ucode[5]))
+        return super(BarreledFunction, self)._code_new(with_globals, ucode)
 
 
     def _function_new(self, with_globals, ufunc):
-        func = super(BarrelFunction, self)._function_new(with_globals, ufunc)
+        func = super(BarreledFunction, self)._function_new(with_globals, ufunc)
 
         # make sure the barrel only attempts to unbrine this function
         # once, so put our entry into the cache before attempting to
@@ -108,27 +123,20 @@ class BarrelFunction(BrineFunction):
         return func
 
 
-class BarrelMethod(BrineMethod):
+class BarreledMethod(BarreledObject, BrinedMethod):
 
     """
     A brined bound method in a barrel.
     """
 
-    def __init__(self, barrel, boundmethod):
-        self._barrel = barrel
-        super(BarrelMethod, self).__init__(boundmethod)
+    pass
 
 
-class BarrelPartial(BrinePartial):
+class BarreledPartial(BarreledObject, BrinedPartial):
 
     """
     A brined partial in a barrel.
     """
-
-    def __init__(self, barrel, part):
-        self._barrel = barrel
-        super(BarrelPartial, self).__init__(part)
-
 
     def set(self, part):
         brine = self._barrel._brine
@@ -146,12 +154,12 @@ class BarrelPartial(BrinePartial):
 
 
     def __getstate__(self):
-        return (self._barrel, ) + super(BarrelPartial, self).__getstate__()
+        return (self._barrel, ) + super(BarreledPartial, self).__getstate__()
 
 
     def __setstate__(self, data):
         self._barrel = data[0]
-        super(BarrelPartial, self).__setstate__(data[1:])
+        super(BarreledPartial, self).__setstate__(data[1:])
 
 
 class Barrel(object):
@@ -161,9 +169,15 @@ class Barrel(object):
     values when pickled.
     """
 
-    def __init__(self):
+    def __init__(self, **values):
+
+        """
+        Create an empty Barrel. Optionally initializes it with the mapping
+        from the `values` parameter.
+        """
+
         self._brined = None
-        self._unbrined = dict()
+        self._unbrined = dict(values)
         self._glbls = globals()
         self._cache = None
 
@@ -194,6 +208,12 @@ class Barrel(object):
 
 
     def get(self, key, default_value=None):
+
+        """
+        An unbrined copy of the value assodicated with `key` if `key` is
+        in this Barrel, else `default_value`.
+        """
+
         if self._unbrined is None:
             self._unbrine_all()
         return self._unbrined.get(key, default_value)
@@ -236,12 +256,22 @@ class Barrel(object):
 
 
     def update(self, from_dict):
+        """
+        Update the contents of this Barrel from the keys and values in
+        `from_dict`
+        """
+
         if self._unbrined is None:
             self._unbrine_all()
         return self._unbrined.update(from_dict)
 
 
     def clear(self):
+        """
+        Remove all key and value pairs in this Barrel, and clear the
+        cache.
+        """
+
         self._brined = None
         self._unbrined = dict()
 
@@ -252,7 +282,9 @@ class Barrel(object):
         if self._unbrined is None:
             return self._brined or dict()
         else:
-            return self._brine_all()
+            if self._brined is None:
+                self._brine_all()
+            return self._brined
 
 
     def __setstate__(self, data):
@@ -265,20 +297,18 @@ class Barrel(object):
     # == Barrel API ==
 
     def use_globals(self, glbls=None):
-
         """
-        optionally provide a different set of globals when rebuilding
-        functions from their brined bits
+        Provide a different set of globals when rebuilding functions from
+        their brined wrappers.
         """
 
         self._glbls = globals() if glbls is None else glbls
 
 
     def reset(self):
-
         """
-        Clears the internal cache, meaning any future sets or gets from
-        this Barrel will cause full brining or unbrining rather than
+        Clears the internal cache. Any future sets or gets from this
+        Barrel will cause full brining or unbrining rather than
         returning an already computed value.
 
         If you retrieved a value from this barrel and want to load a
@@ -287,21 +317,22 @@ class Barrel(object):
         """
 
         if self._brined is None:
-            self._brined = self._brine_all()
+            self._brine_all()
         self._unbrined = None
 
 
     def _brine_all(self):
+        oldcache = self._cache
         self._cache = dict()
-        value = self._brine(self._unbrined)
-        self._cache = None
-        return value
+        self._brined = self._brine(self._unbrined)
+        self._cache = oldcache
 
 
     def _unbrine_all(self):
+        oldcache = self._cache
         self._cache = dict()
         self._unbrined = self._unbrine(self._brined)
-        self._cache = None
+        self._cache = oldcache
 
 
     def _putcache(self, original, brined):
@@ -315,7 +346,7 @@ class Barrel(object):
     def _unbrine(self, value):
         assert(self._cache is not None)
 
-        if isinstance(value, BrineObject):
+        if isinstance(value, BrinedObject):
             ret = self._getcache(value)
             if not ret:
                 ret = value.get(self._glbls)
@@ -350,21 +381,21 @@ class Barrel(object):
         elif isinstance(value, partial):
             ret = self._getcache(value)
             if not ret:
-                ret = BarrelPartial(self, value)
+                ret = BarreledPartial(self, value)
                 self._putcache(value, ret)
             value = ret
 
         elif isinstance(value, MethodType):
             ret = self._getcache(value)
             if not ret:
-                ret = BarrelMethod(self, value)
+                ret = BarreledMethod(self, value)
                 self._putcache(value, ret)
             value = ret
 
         elif isinstance(value, FunctionType):
             ret = self._getcache(value)
             if not ret:
-                ret = BarrelFunction(self, value)
+                ret = BarreledFunction(self, value)
                 self._putcache(value, ret)
             value = ret
 
