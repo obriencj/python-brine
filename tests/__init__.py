@@ -92,14 +92,16 @@ class TestUnnew(unittest.TestCase):
 class TestBrine(unittest.TestCase):
 
     def test_brine_other(self):
-        # see what happens when we encounter un-brine-able types
+        # test that brine doesn't break normal pickling of non-function
+        # types (builtins, types, simple values)
+
         data_built = ( map, zip, globals )
         data_types = ( type, tuple, int )
         data_stuff = (501, 5.01, "Hello", set([1, 3, 5, 7]))
-
         data = [data_built, data_types, data_stuff]
-        ndata = unbrine(pickle_unpickle(brine(data)))
 
+        # duplicate is all via brine/pickle/unpickle/unbrine
+        ndata = unbrine(pickle_unpickle(brine(data)))
         ndata_built = ndata[0]
         ndata_types = ndata[1]
         ndata_stuff = ndata[2]
@@ -121,6 +123,8 @@ class TestBrine(unittest.TestCase):
 
 
     def test_brine_function_dict(self):
+        # test brinind of a function embedded in a dict
+
         func_a = make_adder(8)
         func_b = make_adder(9)
 
@@ -137,6 +141,8 @@ class TestBrine(unittest.TestCase):
 
 
     def test_brine_function_list(self):
+        # test brining of a function embedded in a list
+
         func_a = make_adder(8)
         func_b = make_adder(9)
 
@@ -154,6 +160,8 @@ class TestBrine(unittest.TestCase):
 
 
     def test_brine_function_tuple(self):
+        # test brining of a function embedded in a tuple
+
         func_a = make_adder(8)
         func_b = make_adder(9)
 
@@ -171,6 +179,9 @@ class TestBrine(unittest.TestCase):
 
 
     def test_brine_pair_list(self):
+        # test that a pair of function sharing a clusure come out
+        # sharing the same dup'd closure
+
         getter, setter = make_pair("Hello World")
 
         # show that they work as expected
@@ -219,6 +230,8 @@ class TestBrine(unittest.TestCase):
 
 
     def test_brine_partial_function(self):
+        # test that brining a partial of a function works
+
         add_x_y = lambda x, y: (x + y)
         add_8 = partial(add_x_y, 8)
 
@@ -233,6 +246,8 @@ class TestBrine(unittest.TestCase):
 
 
     def test_brine_partial_method(self):
+        # test that brining of a partial of a method works
+
         o = Obj("Hungry")
 
         self.assertEqual(o.get_value(), "Hungry")
