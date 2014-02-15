@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>brine package &mdash; brine  documentation</title>
+    <title>Module brine &mdash; brine 0.9.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '',
+        VERSION:     '0.9.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '',
         HAS_SOURCE:  true
@@ -23,8 +23,8 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="brine  documentation" href="../" />
-    <link rel="next" title="brine.barrel package" href="../barrel/" />
+    <link rel="top" title="brine 0.9.0 documentation" href="../" />
+    <link rel="next" title="Module brine.barrel" href="../barrel/" />
     <link rel="prev" title="Overview of python-brine" href="../overview/" /> 
   </head>
   <body>
@@ -38,12 +38,15 @@
           <a href="../py-modindex/" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../barrel/" title="brine.barrel package"
+          <a href="../np-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../barrel/" title="Module brine.barrel"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="../overview/" title="Overview of python-brine"
              accesskey="P">previous</a> |</li>
-        <li><a href="../">brine  documentation</a> &raquo;</li> 
+        <li><a href="../">brine 0.9.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -52,27 +55,23 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="brine-package">
-<h1>brine package<a class="headerlink" href="#brine-package" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="module-brine">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-brine" title="Permalink to this headline">¶</a></h2>
-<p>Brine provides a way to wrap function objects so that they may be
+  <div class="section" id="module-brine">
+<h1>Module brine<a class="headerlink" href="#module-brine" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-brine"></span><p>Brine provides a way to wrap function objects so that they may be
 pickled.</p>
 <p>To truly pickle a function we need to be able to duplicate its code
-and its closures. By default, <a class="reference external" href="http://docs.python.org/2/library/pickle.html#module-pickle" title="(in Python v2.7)"><tt class="xref py py-mod docutils literal"><span class="pre">pickle</span></tt></a> will simply store the
+and its closures. By default, <cite>pickle</cite> will simply store the
 function&#8217;s name, and then attempt to associate that with a function
 when unpickling. This of course fails when the function is a lambda or
 not otherwise defined at the top level.</p>
 <p>In order to mark a function, method, or partial for storage, use the
-<a class="reference internal" href="#module-brine" title="brine"><tt class="xref py py-func docutils literal"><span class="pre">brine()</span></tt></a> function to create a wrapper. Later, after pickling and
-unpickling the wrapper, call <a class="reference internal" href="#brine.unbrine" title="brine.unbrine"><tt class="xref py py-func docutils literal"><span class="pre">unbrine()</span></tt></a> to get a new copy of the
+<cite>brine</cite> function to create a wrapper. Later, after pickling and
+unpickling the wrapper, call <cite>unbrine</cite> to get a new copy of the
 original function.</p>
-<p>See the <a class="reference internal" href="../barrel/#module-brine.barrel" title="brine.barrel"><tt class="xref py py-mod docutils literal"><span class="pre">brine.barrel</span></tt></a> module in order to pickle recursive
-functions, mutually recursive functions, and the like.</p>
 <p>Loading this module has the side effect of registering a pickle
-handler for the <tt class="xref py py-class docutils literal"><span class="pre">CellType</span></tt> type. This should be of low impact,
-as the only place this type is used is within function instances, and
-it is normally an unexposed type.</p>
+handler for the <cite>CellType</cite> type. This should be of low impact, as the
+only place this type is used is within function instances, and it
+typically unexposed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -83,111 +82,43 @@ it is normally an unexposed type.</p>
 </tr>
 </tbody>
 </table>
-<dl class="class">
-<dt id="brine.BrineObject">
-<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrineObject</tt><a class="reference internal" href="../_modules/brine/#BrineObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineObject" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
-<p>Abstract base class for brine wrappers.</p>
-<dl class="method">
-<dt id="brine.BrineObject.get">
-<tt class="descname">get</tt><big>(</big><em>with_globals=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineObject.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineObject.get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="brine.BrineFunction">
-<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrineFunction</tt><big>(</big><em>function=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#brine.BrineObject" title="brine.BrineObject"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrineObject</span></tt></a></p>
-<p>Wraps a function so that it may be pickled. For the most part
-you&#8217;ll want to use the brine and unbrine functions from this
-module rather than instantiating or accessing this class directly</p>
-<dl class="method">
-<dt id="brine.BrineFunction.get">
-<tt class="descname">get</tt><big>(</big><em>with_globals=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineFunction.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineFunction.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>create a copy of the original function</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="brine.BrineFunction.set">
-<tt class="descname">set</tt><big>(</big><em>function</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineFunction.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineFunction.set" title="Permalink to this definition">¶</a></dt>
-<dd><p>set the function to be pickled by this instance</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="brine.BrineMethod">
-<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrineMethod</tt><big>(</big><em>boundmethod=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineMethod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineMethod" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#brine.BrineObject" title="brine.BrineObject"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrineObject</span></tt></a></p>
-<p>Wraps a bound method so that it can be pickled. By default pickle
-refuses to operate on bound instance method object. This wrapper
-will still require that the object instance supports pickling,
-which in turn requires that the class be defined at the top level.
-As with the BrineFunction class, it is better to use the brine and
-unbrine functions from this module rather than to instantiate or
-access this class directly.</p>
-<dl class="method">
-<dt id="brine.BrineMethod.get">
-<tt class="descname">get</tt><big>(</big><em>with_globals=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineMethod.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineMethod.get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="brine.BrineMethod.set">
-<tt class="descname">set</tt><big>(</big><em>method</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrineMethod.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrineMethod.set" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="brine.BrinePartial">
-<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrinePartial</tt><big>(</big><em>part=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinePartial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinePartial" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#brine.BrineObject" title="brine.BrineObject"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrineObject</span></tt></a></p>
-<p>Wrap a <tt class="xref py py-class docutils literal"><span class="pre">functools.partial</span></tt> instance that references a
-function or method that is otherwise unsupported by pickle.</p>
-<dl class="method">
-<dt id="brine.BrinePartial.get">
-<tt class="descname">get</tt><big>(</big><em>with_globals=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinePartial.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinePartial.get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="brine.BrinePartial.set">
-<tt class="descname">set</tt><big>(</big><em>part</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinePartial.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinePartial.set" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="brine.brine">
 <tt class="descclassname">brine.</tt><tt class="descname">brine</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="../_modules/brine/#brine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.brine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wraps function, method, or partial so that they may be pickled.</p>
-<p>There is no de-duplication or caching &#8211; eg. if the same function
-is in a list multiple times, each will be wrapped individually and
-as a result will be duplicated when unbrined. For complex
-situations like this, use a <a class="reference internal" href="../barrel/#brine.barrel.Barrel" title="brine.barrel.Barrel"><tt class="xref py py-class docutils literal"><span class="pre">Barrel</span></tt></a></p>
-<p>Methods and functions brined will not have the contents of their
-cells brined &#8211; eg. if an anonymous function refers to another
-anonymous function, pickling will fail. Use a
-<a class="reference internal" href="../barrel/#brine.barrel.Barrel" title="brine.barrel.Barrel"><tt class="xref py py-class docutils literal"><span class="pre">Barrel</span></tt></a> for such situations.</p>
-<p>Behavior by type of <cite>value</cite> is as follows:</p>
+<dd><p>Wrap an object so that it may be pickled. Behavior by type of
+<cite>value</cite> is as follows:</p>
 <ul class="simple">
-<li><a class="reference external" href="http://docs.python.org/2/library/types.html#types.BuiltinFunctionType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">BuiltinFunctionType</span></tt></a> or
-<a class="reference external" href="http://docs.python.org/2/library/types.html#types.BuiltinMethodType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">BuiltinMethodType</span></tt></a> is unchanged</li>
-<li><tt class="xref py py-class docutils literal"><span class="pre">partial</span></tt> is wrapped as <a class="reference internal" href="#brine.BrinePartial" title="brine.BrinePartial"><tt class="xref py py-class docutils literal"><span class="pre">BrinePartial</span></tt></a></li>
-<li><a class="reference external" href="http://docs.python.org/2/library/types.html#types.MethodType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">MethodType</span></tt></a> is wrapped as <a class="reference internal" href="#brine.BrineMethod" title="brine.BrineMethod"><tt class="xref py py-class docutils literal"><span class="pre">BrineMethod</span></tt></a></li>
-<li><a class="reference external" href="http://docs.python.org/2/library/types.html#types.FunctionType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">FunctionType</span></tt></a> is wrapped as <a class="reference internal" href="#brine.BrineFunction" title="brine.BrineFunction"><tt class="xref py py-class docutils literal"><span class="pre">BrineFunction</span></tt></a></li>
-<li><tt class="xref py py-class docutils literal"><span class="pre">list</span></tt> and <tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt> are duplicated and their
-contents are brined</li>
-<li><a class="reference external" href="http://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> is duplicated and its values are brined</li>
+<li><cite>builtin_function_or_method</cite> is unchanged</li>
+<li><cite>partial</cite> is wrapped as a <cite>BrinePartial</cite></li>
+<li><cite>instancemethod</cite> is wrapped as a <cite>BrineMethod</cite></li>
+<li><cite>function</cite> is wrapped as a <cite>BrineFunction</cite></li>
+<li><cite>list</cite> and <cite>tuple</cite> are duplicated and contents are brined</li>
+<li><cite>dict</cite> is duplicated and its values are brined</li>
 <li>all other types are returned unchanged</li>
 </ul>
+<p>This function provides neither caching nor preservation of
+uniqueness &#8211; if the same function is in a list multiple times,
+each will be wrapped individually and as a result will be
+duplicated when unbrined.</p>
+<p>In cases where uniqueness needs to be preserved, use a <cite>Barrel</cite>
+instead.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><em>object</em></a>) &#8211; The object or collection to wrap</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>value</strong> : <cite>object</cite></p>
+<blockquote>
+<div><p>object to be brined for pickling</p>
+</div></blockquote>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Depending on the type of <cite>value</cite> parameter</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>wrapped</strong> : <cite>object</cite></p>
+<blockquote class="last">
+<div><p>as defined by the <cite>value</cite> parameter</p>
+</div></blockquote>
+</td>
 </tr>
 </tbody>
 </table>
@@ -196,107 +127,175 @@ contents are brined</li>
 <dl class="function">
 <dt id="brine.unbrine">
 <tt class="descclassname">brine.</tt><tt class="descname">unbrine</tt><big>(</big><em>value</em>, <em>with_globals=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#unbrine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.unbrine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Unwrap a <cite>value</cite> previously wrapped with <a class="reference internal" href="#brine.brine" title="brine.brine"><tt class="xref py py-func docutils literal"><span class="pre">brine()</span></tt></a></p>
-<p>Behavior by type of <cite>value</cite> is as follows:</p>
+<dd><p>Unwrap a <cite>value</cite> previously wrapped with the <cite>brine</cite>
+function. Behavior by type of <cite>value</cite> is as follows:</p>
 <ul class="simple">
-<li><a class="reference internal" href="#brine.BrinePartial" title="brine.BrinePartial"><tt class="xref py py-class docutils literal"><span class="pre">BrinePartial</span></tt></a> unwraps to <tt class="xref py py-class docutils literal"><span class="pre">partial</span></tt></li>
-<li><a class="reference internal" href="#brine.BrineMethod" title="brine.BrineMethod"><tt class="xref py py-class docutils literal"><span class="pre">BrineMethod</span></tt></a> unwraps to <a class="reference external" href="http://docs.python.org/2/library/types.html#types.MethodType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">MethodType</span></tt></a></li>
-<li><a class="reference internal" href="#brine.BrineFunction" title="brine.BrineFunction"><tt class="xref py py-class docutils literal"><span class="pre">BrineFunction</span></tt></a> unwraps to <a class="reference external" href="http://docs.python.org/2/library/types.html#types.FunctionType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">FunctionType</span></tt></a></li>
-<li><tt class="xref py py-class docutils literal"><span class="pre">list</span></tt> and <tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt> are duplicated with their contents
-unbrined</li>
-<li><a class="reference external" href="http://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> is duplicated and its values are unbrined</li>
+<li><cite>BrinePartial</cite> unwraps to a <cite>partial</cite></li>
+<li><cite>BrineMethod</cite> unwraps to a <cite>instancemethod</cite></li>
+<li><cite>BrineFunction</cite> unwraps to a <cite>function</cite></li>
+<li><cite>list</cite> and <cite>tuple</cite> are duplicated and contents unbrined</li>
+<li><cite>dict</cite> is duplicated and its values are unbrined</li>
 </ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>object</strong> (<em>value</em>) &#8211; object wrapped prior via <a class="reference internal" href="#module-brine" title="brine"><tt class="xref py py-func docutils literal"><span class="pre">brine()</span></tt></a></li>
-<li><strong>with_globals</strong> (<cite>None</cite> or <a class="reference external" href="http://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a>) &#8211; globals dictionary to use when recreating
-functions. Default is the same as <a class="reference external" href="http://docs.python.org/2/library/functions.html#globals" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">globals()</span></tt></a></li>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>value</strong> : <cite>object</cite></p>
+<blockquote>
+<div><p>value to be unbrined</p>
+</div></blockquote>
+<p><strong>with_globals</strong> : <cite>dict</cite> or <cite>None</cite></p>
+<blockquote>
+<div><p>globals dictionary to use when recreating functions. <cite>None</cite> is
+the same as <cite>globals()</cite></p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>unwrapped</strong> : <cite>object</cite></p>
+<blockquote class="last">
+<div><p>as defined by the type of <cite>value</cite></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="wrapper-classes">
+<h2>Wrapper Classes<a class="headerlink" href="#wrapper-classes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="brine.BrinedObject">
+<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrinedObject</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinedObject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinedObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract base class for brine wrappers. Defines the interface
+required for brine.</p>
+<ul class="simple">
+<li>When instantiated, should accept a <cite>value</cite> to wrap</li>
+<li>The <cite>get</cite> method should return a new copy of the wrapped <cite>value</cite></li>
+<li>Must define the <cite>__getstate__</cite> and <cite>__setstate__</cite> methods for
+<cite>pickle</cite> support.</li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">An unwrapped value, depending on the type of the <cite>value</cite>
-parameter</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="brine.code_unnew">
-<tt class="descclassname">brine.</tt><tt class="descname">code_unnew</tt><big>(</big><em>code</em><big>)</big><a class="reference internal" href="../_modules/brine/#code_unnew"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.code_unnew" title="Permalink to this definition">¶</a></dt>
-<dd><p>The necessary arguments for use in <a class="reference internal" href="#brine.code_new" title="brine.code_new"><tt class="xref py py-func docutils literal"><span class="pre">code_new()</span></tt></a> to create an
-identical but distinct <a class="reference external" href="http://docs.python.org/2/library/types.html#types.CodeType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">CodeType</span></tt></a> instance.</p>
+<dl class="method">
+<dt id="brine.BrinedObject.__init__">
+<tt class="descname">__init__</tt><big>(</big><em>value</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinedObject.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinedObject.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap <cite>value</cite> so that it may be pickled.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>code</strong> (<a class="reference external" href="http://docs.python.org/2/library/types.html#types.CodeType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">CodeType</span></tt></a>) &#8211; code object for inspection</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">list</span></tt> of member values of <cite>code</cite></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="brine.code_new">
-<tt class="descclassname">brine.</tt><tt class="descname">code_new</tt><big>(</big><em>argcount</em>, <em>nlocals</em>, <em>stacksize</em>, <em>flags</em>, <em>code</em>, <em>consts</em>, <em>names</em>, <em>varnames</em>, <em>filename</em>, <em>name</em>, <em>firstlineno</em>, <em>lnotab</em>, <em>freevars</em>, <em>cellvars</em><big>)</big><a class="reference internal" href="../_modules/brine/#code_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.code_new" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a new code object. Identical to <a class="reference external" href="http://docs.python.org/2/library/new.html#new.code" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">new.code()</span></tt></a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">new <a class="reference external" href="http://docs.python.org/2/library/types.html#types.CodeType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">CodeType</span></tt></a> instance</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="brine.function_unnew">
-<tt class="descclassname">brine.</tt><tt class="descname">function_unnew</tt><big>(</big><em>func</em><big>)</big><a class="reference internal" href="../_modules/brine/#function_unnew"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.function_unnew" title="Permalink to this definition">¶</a></dt>
-<dd><p>The necessary arguments for use in <a class="reference internal" href="#brine.function_new" title="brine.function_new"><tt class="xref py py-func docutils literal"><span class="pre">function_new()</span></tt></a> to create
-an identical but distinct <a class="reference external" href="http://docs.python.org/2/library/types.html#types.FunctionType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">FunctionType</span></tt></a> instance.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>func</strong> (<a class="reference external" href="http://docs.python.org/2/library/types.html#types.FunctionType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">FunctionType</span></tt></a>) &#8211; function object for inspection</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><tt class="xref py py-class docutils literal"><span class="pre">list</span></tt> of member values of <cite>func</cite></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="brine.function_new">
-<tt class="descclassname">brine.</tt><tt class="descname">function_new</tt><big>(</big><em>code</em>, <em>with_globals</em>, <em>name</em>, <em>defaults</em>, <em>closure</em><big>)</big><a class="reference internal" href="../_modules/brine/#function_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.function_new" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a new function. Identical to <a class="reference external" href="http://docs.python.org/2/library/new.html#new.function" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">new.function()</span></tt></a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>code</strong> (<a class="reference external" href="http://docs.python.org/2/library/types.html#types.CodeType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">CodeType</span></tt></a>) &#8211; code object for the function to execute when called</li>
-<li><strong>with_globals</strong> (<a class="reference external" href="http://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> often the result of <a class="reference external" href="http://docs.python.org/2/library/functions.html#globals" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">globals()</span></tt></a>) &#8211; </li>
-<li><strong>name</strong> (<tt class="xref py py-class docutils literal"><span class="pre">str</span></tt>) &#8211; name for the function</li>
-<li><strong>defaults</strong> &#8211; defaults for the function</li>
-<li><strong>closure</strong> (<tt class="xref py py-class docutils literal"><span class="pre">tuple</span></tt>) &#8211; captured <tt class="xref py py-class docutils literal"><span class="pre">CellType</span></tt> cells defining the closure</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">new <a class="reference external" href="http://docs.python.org/2/library/types.html#types.FunctionType" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">FunctionType</span></tt></a> instance</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>value</strong> : <cite>object</cite></p>
+<blockquote class="last">
+<div><p>the instance needing to be wrapped for pickling</p>
+</div></blockquote>
 </td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="brine.BrinedObject.__getstate__">
+<tt class="descname">__getstate__</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/brine/#BrinedObject.__getstate__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinedObject.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Special method used by a <cite>pickle.Pickler</cite> to serialize an instance
+of this class.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>data</strong> : <cite>tuple</cite></p>
+<blockquote class="last">
+<div><p>information to provide to the pickle API. Should be the
+same as what is expected in the <cite>__setstate__</cite> method</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="brine.BrinedObject.__setstate__">
+<tt class="descname">__setstate__</tt><big>(</big><em>data</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinedObject.__setstate__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinedObject.__setstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Special method used by a <cite>pickle.Unpickler</cite> to deserialize an
+instance of this class. Should accept the same data returned
+by the <cite>__getstate__</cite> method</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>data</strong> : <cite>tuple</cite></p>
+<blockquote class="last">
+<div><p>information provided by the pickle API to instantiate a
+new copy</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="brine.BrinedObject.get">
+<tt class="descname">get</tt><big>(</big><em>with_globals=None</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinedObject.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinedObject.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recreate a copy of the initial brined value</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>with_globals</strong> : <cite>dict</cite> or <cite>None</cite></p>
+<blockquote>
+<div><p>The global namespace to be used when recreating the
+value. If None will be presumed to be <cite>globals()</cite> :type
+with_globals: <a class="reference external" href="http://docs.python.org/2/library/stdtypes.html#dict" title="(in Python v2.7)"><tt class="xref py py-class docutils literal"><span class="pre">dict</span></tt></a> or <a class="reference external" href="http://docs.python.org/2/library/constants.html#None" title="(in Python v2.7)"><tt class="xref py py-data docutils literal"><span class="pre">None</span></tt></a></p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>value</strong> : <cite>object</cite></p>
+<blockquote class="last">
+<div><p>A copy of the <cite>value</cite> originally passed to <cite>__init__</cite></p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="brine.BrinedFunction">
+<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrinedFunction</tt><big>(</big><em>function</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinedFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinedFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#brine.BrinedObject" title="brine.BrinedObject"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrinedObject</span></tt></a></p>
+<p>Wraps a function so that it may be pickled. For the most part
+you&#8217;ll want to use the brine and unbrine functions from this
+module rather than instantiating or accessing this class directly</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="brine.BrinedMethod">
+<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrinedMethod</tt><big>(</big><em>boundmethod</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinedMethod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinedMethod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#brine.BrinedObject" title="brine.BrinedObject"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrinedObject</span></tt></a></p>
+<p>Wraps a bound method so that it can be pickled. By default pickle
+refuses to operate on bound instance method object. This wrapper
+will still require that the object instance supports pickling,
+which in turn requires that the class be defined at the top level.
+As with the BrineFunction class, it is better to use the brine and
+unbrine functions from this module rather than to instantiate or
+access this class directly.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="brine.BrinedPartial">
+<em class="property">class </em><tt class="descclassname">brine.</tt><tt class="descname">BrinedPartial</tt><big>(</big><em>part</em><big>)</big><a class="reference internal" href="../_modules/brine/#BrinedPartial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.BrinedPartial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#brine.BrinedObject" title="brine.BrinedObject"><tt class="xref py py-class docutils literal"><span class="pre">brine.BrinedObject</span></tt></a></p>
+<p>Wrap a <tt class="xref py py-class docutils literal"><span class="pre">functools.partial</span></tt> instance that references a
+function or method that is otherwise unsupported by pickle.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="see-also">
+<h2>See Also<a class="headerlink" href="#see-also" title="Permalink to this headline">¶</a></h2>
+<p><a class="reference external" href="http://docs.python.org/2/library/pickle.html#module-pickle" title="(in Python v2.7)"><tt class="xref py py-mod docutils literal"><span class="pre">pickle</span></tt></a>, <a class="reference external" href="http://docs.python.org/2/library/functools.html#functools.partial" title="(in Python v2.7)"><tt class="xref py py-func docutils literal"><span class="pre">functools.partial()</span></tt></a></p>
 </div>
 </div>
 
@@ -308,8 +307,10 @@ an identical but distinct <a class="reference external" href="http://docs.python
         <div class="sphinxsidebarwrapper">
   <h3><a href="../">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">brine package</a><ul>
-<li><a class="reference internal" href="#module-brine">Module contents</a></li>
+<li><a class="reference internal" href="#">Module brine</a><ul>
+<li><a class="reference internal" href="#functions">Functions</a></li>
+<li><a class="reference internal" href="#wrapper-classes">Wrapper Classes</a></li>
+<li><a class="reference internal" href="#see-also">See Also</a></li>
 </ul>
 </li>
 </ul>
@@ -319,7 +320,7 @@ an identical but distinct <a class="reference external" href="http://docs.python
                         title="previous chapter">Overview of python-brine</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="../barrel/"
-                        title="next chapter">brine.barrel package</a></p>
+                        title="next chapter">Module brine.barrel</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/brine.txt"
@@ -352,16 +353,19 @@ an identical but distinct <a class="reference external" href="http://docs.python
           <a href="../py-modindex/" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../barrel/" title="brine.barrel package"
+          <a href="../np-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../barrel/" title="Module brine.barrel"
              >next</a> |</li>
         <li class="right" >
           <a href="../overview/" title="Overview of python-brine"
              >previous</a> |</li>
-        <li><a href="../">brine  documentation</a> &raquo;</li> 
+        <li><a href="../">brine 0.9.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-        &copy; Copyright 2014, Author.
+        &copy; Copyright 2014, Christopher O&#39;Brien.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
     </div>
   </body>
