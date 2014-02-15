@@ -28,39 +28,68 @@ from brine import brine, unbrine
 from brine._cellwork import cell_get_value, cell_set_value, cell_from_value
 from functools import partial
 from itertools import imap
-from types import BuiltinFunctionType, FunctionType, MethodType
+from types import BuiltinFunctionType, BuiltinMethodType
+from types import FunctionType, MethodType
 
 
-__all__ = [ "Barrel" ]
+__all__ = [ "Barrel", "BarreledObject",
+            "BarreledFunction", "BarreledMethod", "BarreledPartial" ]
 
 
 class BarreledObject(BrinedObject):
+
+    """
+    Abstract base class for barrel wrappers. Defines the interface
+    required for a barrel to brine a value.
+
+    - When created, should accept a parent `barrel` and a `value` to wrap
+    - The `get` method should return a new copy of the wrapped `value`
+    - Must define the `__getstate__` and `__setstate__` methods for
+      `pickle` support.
+    """
 
     __metaclass__ = ABCMeta
 
 
     def __init__(self, barrel, value):
+        """
+        Parameters
+        ----------
+        barrel : `Barrel`
+            barrel containing this wrapper
+        value : `object`
+            object to be wrapped for pickling
+        """
+
         self._barrel = barrel
         super(BarreledObject, self).__init__(value)
 
 
     def brine_related(self, value):
+        """
+        Utility method for implementations to request that the parent
+        barrel brine an internal value. This allows the barrel to act
+        as a cache of the brining process.
+        """
         return self._barrel._brine(value)
 
 
     def unbrine_related(self, brined_value):
+        """
+        Utility method for implementations to request that the parent
+        barrel unbrine an internal value. This allows the barrel to
+        act as a cache of the unbrining process.
+        """
         return self._barrel._unbrine(brined_value)
 
 
 class BarreledFunction(BarreledObject, BrinedFunction):
 
     """
-    A brined function in a barrel. This function may be recursive, or
-    may reference other functions. Use the BrineBarrel's add_function
-    and get_function methods rather than instanciating this class
-    directly.
+    A brined function in a barrel. This wrapper is created
+    automatically around `function` instances in a `Barrel` when it is
+    pickled.
     """
-
 
     def __getstate__(self):
         return (self._barrel, ) + super(BarreledFunction, self).__getstate__()
@@ -126,7 +155,9 @@ class BarreledFunction(BarreledObject, BrinedFunction):
 class BarreledMethod(BarreledObject, BrinedMethod):
 
     """
-    A brined bound method in a barrel.
+    A brined bound method in a barrel.  This wrapper is created
+    automatically around `instancemethod` instances in a `Barrel` when
+    it is pickled.
     """
 
     pass
@@ -135,18 +166,22 @@ class BarreledMethod(BarreledObject, BrinedMethod):
 class BarreledPartial(BarreledObject, BrinedPartial):
 
     """
-    A brined partial in a barrel.
+    A brined partial in a barrel.  This wrapper is created
+    automatically around `partial` instances in a `Barrel` when it is
+    pickled.
     """
 
-    def set(self, part):
-        brine = self._barrel._brine
+    def __init__(self, barrel, part):
+        self._barrel = barrel
+
+        brine = self.brine_related
         self.func = brine(part.func)
         self.args = brine(part.args or None)
         self.keywords = brine(part.keywords or None)
 
 
-    def get(self, with_globals):
-        unbrine = self._barrel._unbrine
+    def get(self, with_globals=None):
+        unbrine = self.unbrine_related
         func = unbrine(self.func)
         args = unbrine(self.args or tuple())
         kwds = unbrine(self.keywords or dict())
@@ -170,7 +205,6 @@ class Barrel(object):
     """
 
     def __init__(self, **values):
-
         """
         Create an empty Barrel. Optionally initializes it with the mapping
         from the `values` parameter.
@@ -208,7 +242,6 @@ class Barrel(object):
 
 
     def get(self, key, default_value=None):
-
         """
         An unbrined copy of the value assodicated with `key` if `key` is
         in this Barrel, else `default_value`.
@@ -374,7 +407,7 @@ class Barrel(object):
     def _brine(self, value):
         assert(self._cache is not None)
 
-        if isinstance(value, BuiltinFunctionType):
+        if isinstance(value, (BuiltinFunctionType, BuiltinMethodType)):
             # don't touch builtins
             pass
 
