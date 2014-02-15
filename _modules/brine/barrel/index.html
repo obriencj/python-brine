@@ -135,7 +135,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="o">.</span><span class="n">_unbrine</span><span class="p">(</span><span class="n">brined_value</span><span class="p">)</span>
 
-</div></div>
+</div>
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="p">,</span> <span class="p">)</span> <span class="o">+</span> <span class="nb">super</span><span class="p">(</span><span class="n">BarreledObject</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">()</span>
+
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BarreledObject</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+</div>
 <div class="viewcode-block" id="BarreledFunction"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarreledFunction">[docs]</a><span class="k">class</span> <span class="nc">BarreledFunction</span><span class="p">(</span><span class="n">BarreledObject</span><span class="p">,</span> <span class="n">BrinedFunction</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
@@ -143,15 +152,6 @@
 <span class="sd">    automatically around `function` instances in a `Barrel` when it is</span>
 <span class="sd">    pickled.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="p">,</span> <span class="p">)</span> <span class="o">+</span> <span class="nb">super</span><span class="p">(</span><span class="n">BarreledFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">()</span>
-
-
-    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">BarreledFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-
 
     <span class="k">def</span> <span class="nf">_brine_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cell</span><span class="p">):</span>
         <span class="n">val</span> <span class="o">=</span> <span class="n">cell_get_value</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
@@ -165,15 +165,6 @@
         <span class="n">cell_set_value</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">ubval</span><span class="p">)</span>
 
 
-    <span class="k">def</span> <span class="nf">_function_unnew</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="o">.</span><span class="n">_putcache</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-
-        <span class="n">ufunc</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">BarreledFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_function_unnew</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ufunc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="n">ufunc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">imap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_brine_cell</span><span class="p">,</span> <span class="n">ufunc</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span>
-        <span class="k">return</span> <span class="n">ufunc</span>
-
-
     <span class="k">def</span> <span class="nf">_code_unnew</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">code</span><span class="p">):</span>
         <span class="n">uncode</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">BarreledFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_code_unnew</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
         <span class="n">uncode</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">imap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">brine_related</span><span class="p">,</span> <span class="n">uncode</span><span class="p">[</span><span class="mi">5</span><span class="p">]))</span>
@@ -183,6 +174,15 @@
     <span class="k">def</span> <span class="nf">_code_new</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">,</span> <span class="n">ucode</span><span class="p">):</span>
         <span class="n">ucode</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">imap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unbrine_related</span><span class="p">,</span> <span class="n">ucode</span><span class="p">[</span><span class="mi">5</span><span class="p">]))</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">BarreledFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_code_new</span><span class="p">(</span><span class="n">with_globals</span><span class="p">,</span> <span class="n">ucode</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_function_unnew</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="o">.</span><span class="n">_putcache</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">ufunc</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">BarreledFunction</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_function_unnew</span><span class="p">(</span><span class="n">function</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ufunc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">ufunc</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">imap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_brine_cell</span><span class="p">,</span> <span class="n">ufunc</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">ufunc</span>
 
 
     <span class="k">def</span> <span class="nf">_function_new</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">,</span> <span class="n">ufunc</span><span class="p">):</span>
@@ -228,33 +228,24 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span> <span class="o">=</span> <span class="n">barrel</span>
 
         <span class="n">brine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">brine_related</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_func</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_keywords</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
 
 
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="n">unbrine</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unbrine_related</span>
-        <span class="n">func</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="nb">tuple</span><span class="p">())</span>
-        <span class="n">kwds</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">())</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_func</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="ow">or</span> <span class="nb">tuple</span><span class="p">())</span>
+        <span class="n">kwds</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keywords</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
-
-
-    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="p">,</span> <span class="p">)</span> <span class="o">+</span> <span class="nb">super</span><span class="p">(</span><span class="n">BarreledPartial</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__getstate__</span><span class="p">()</span>
-
-
-    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">BarreledPartial</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__setstate__</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 
 </div>
 <div class="viewcode-block" id="Barrel"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel">[docs]</a><span class="k">class</span> <span class="nc">Barrel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A dict-like mapping supporting automatic brining of contained</span>
-<span class="sd">    values when pickled.</span>
+<span class="sd">    Mapping supporting automatic brining of contained values when</span>
+<span class="sd">    pickled. Provides the `dict` interface special methods.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Barrel.__init__"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">values</span><span class="p">):</span>
@@ -398,8 +389,8 @@
 <span class="sd">        returning an already computed value.</span>
 
 <span class="sd">        If you retrieved a value from this barrel and want to load a</span>
-<span class="sd">        new copy (possibly with different globals), calling reset() is</span>
-<span class="sd">        a way to achieve such.</span>
+<span class="sd">        new copy (possibly with different globals), calling `reset()`</span>
+<span class="sd">        is a way to achieve such.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_brined</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>

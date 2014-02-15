@@ -286,9 +286,9 @@
 <span class="sd">    Abstract base class for brine wrappers. Defines the interface</span>
 <span class="sd">    required for brine.</span>
 
-<span class="sd">    - When instantiated, should accept a `value` to wrap</span>
-<span class="sd">    - The `get` method should return a new copy of the wrapped `value`</span>
-<span class="sd">    - Must define the `__getstate__` and `__setstate__` methods for</span>
+<span class="sd">    * When instantiated, should accept a `value` to wrap</span>
+<span class="sd">    * The `get` method should return a new copy of the wrapped `value`</span>
+<span class="sd">    * Must define the `__getstate__` and `__setstate__` methods for</span>
 <span class="sd">      `pickle` support.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -430,9 +430,9 @@
 <span class="sd">    refuses to operate on bound instance method object. This wrapper</span>
 <span class="sd">    will still require that the object instance supports pickling,</span>
 <span class="sd">    which in turn requires that the class be defined at the top level.</span>
-<span class="sd">    As with the BrineFunction class, it is better to use the brine and</span>
-<span class="sd">    unbrine functions from this module rather than to instantiate or</span>
-<span class="sd">    access this class directly.</span>
+<span class="sd">    As with the `BrineFunction` class, it is better to use the `brine`</span>
+<span class="sd">    and `unbrine` functions from this module rather than to create an</span>
+<span class="sd">    instance of this class directly.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">boundmethod</span><span class="p">):</span>
@@ -461,27 +461,27 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">part</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">func</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_func</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">func</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_keywords</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">)</span>
 
 
     <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_globals</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
 
         <span class="n">glbls</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()</span> <span class="k">if</span> <span class="n">with_globals</span> <span class="ow">is</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">with_globals</span>
 
-        <span class="n">func</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">)</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="ow">or</span> <span class="nb">tuple</span><span class="p">(),</span> <span class="n">with_globals</span><span class="p">)</span>
-        <span class="n">kwds</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">(),</span> <span class="n">with_globals</span><span class="p">)</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_func</span><span class="p">,</span> <span class="n">with_globals</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="ow">or</span> <span class="nb">tuple</span><span class="p">(),</span> <span class="n">with_globals</span><span class="p">)</span>
+        <span class="n">kwds</span> <span class="o">=</span> <span class="n">unbrine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keywords</span> <span class="ow">or</span> <span class="nb">dict</span><span class="p">(),</span> <span class="n">with_globals</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">partial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
 
 
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keywords</span><span class="p">)</span>
 
 
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">keywords</span> <span class="o">=</span> <span class="n">data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_func</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keywords</span> <span class="o">=</span> <span class="n">data</span>
 
 
 <span class="c"># let&#39;s give the pickle module knowledge of how to load and dump Cell</span>

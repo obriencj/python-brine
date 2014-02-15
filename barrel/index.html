@@ -70,8 +70,8 @@ preserving uniqueness.</p>
 <dl class="class">
 <dt id="brine.barrel.Barrel">
 <em class="property">class </em><tt class="descclassname">brine.barrel.</tt><tt class="descname">Barrel</tt><big>(</big><em>**values</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel" title="Permalink to this definition">¶</a></dt>
-<dd><p>A dict-like mapping supporting automatic brining of contained
-values when pickled.</p>
+<dd><p>Mapping supporting automatic brining of contained values when
+pickled. Provides the <cite>dict</cite> interface special methods.</p>
 <dl class="method">
 <dt id="brine.barrel.Barrel.__init__">
 <tt class="descname">__init__</tt><big>(</big><em>**values</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.__init__" title="Permalink to this definition">¶</a></dt>
@@ -93,8 +93,8 @@ cache.</p>
 Barrel will cause full brining or unbrining rather than
 returning an already computed value.</p>
 <p>If you retrieved a value from this barrel and want to load a
-new copy (possibly with different globals), calling reset() is
-a way to achieve such.</p>
+new copy (possibly with different globals), calling <cite>reset()</cite>
+is a way to achieve such.</p>
 </dd></dl>
 
 <dl class="method">
