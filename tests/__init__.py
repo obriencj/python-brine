@@ -152,7 +152,7 @@ class TestBrine(unittest.TestCase):
         l = [func_a, func_b]
         l = unbrine(pickle_unpickle(brine(l)))
 
-        self.assertIsInstance(l, list)
+        self.assertEqual(type(l), list)
         func_a2, func_b2 = l
 
         self.assertEqual(func_a(5), func_a2(5))
@@ -171,7 +171,7 @@ class TestBrine(unittest.TestCase):
         l = (func_a, func_b)
         l = unbrine(pickle_unpickle(brine(l)))
 
-        self.assertIsInstance(l, tuple)
+        self.assertEqual(type(l), tuple)
         func_a2, func_b2 = l
 
         self.assertEqual(func_a(5), func_a2(5))
@@ -235,13 +235,13 @@ class TestBrine(unittest.TestCase):
         add_x_y = lambda x, y: (x + y)
         add_8 = partial(add_x_y, 8)
 
-        self.assertIsInstance(add_8, partial)
+        self.assertEqual(type(add_8), partial)
         self.assertEqual(add_8(10), 18)
 
         new_add_8 = unbrine(pickle_unpickle(brine(add_8)))
 
         self.assertNotEqual(add_8, new_add_8)
-        self.assertIsInstance(new_add_8, partial)
+        self.assertEqual(type(new_add_8), partial)
         self.assertEqual(add_8(11), 19)
 
 
