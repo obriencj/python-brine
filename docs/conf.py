@@ -160,10 +160,10 @@ html_static_path = []
 #html_additional_pages = {}
 
 # If false, no module index is generated.
-#html_domain_indices = True
+html_domain_indices = False
 
 # If false, no index is generated.
-#html_use_index = True
+html_use_index = True
 
 # If true, the index is split into individual pages for each letter.
 #html_split_index = False
@@ -340,3 +340,4 @@ epub_exclude_files = ['search.html']
 # autoclass_content = 'both'
 
 numpydoc_show_class_members = False
+numpydoc_class_members_toctree = False
