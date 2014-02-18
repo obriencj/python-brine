@@ -284,16 +284,15 @@ class BrinedObject(object): # pragma: no cover
         pass
 
     @abstractmethod
-    def get(self, with_globals=None):
+    def get(self, with_globals):
         """
         Recreate a copy of the initial brined value
 
         Parameters
         ----------
-        with_globals : `dict` or `None`
+        with_globals : `globals()` or `dict`-like
             The global namespace to be used when recreating the
-            value. If None will be presumed to be `globals()` :type
-            with_globals: :class:`dict` or :data:`None`
+            value.
 
         Returns
         -------
@@ -348,12 +347,10 @@ class BrinedFunction(BrinedObject):
         return code_unnew(code)
 
 
-    def get(self, with_globals=None):
-
-        glbls = globals() if with_globals is None else with_globals
+    def get(self, with_globals):
 
         # compose the function
-        func = self._function_new(glbls, list(self._unfunc))
+        func = self._function_new(with_globals, list(self._unfunc))
 
         # setup any of the function's members
         func.__dict__.update(self._fdict)
@@ -397,7 +394,7 @@ class BrinedMethod(BrinedObject):
         self._funcname = state[1]
 
 
-    def get(self, with_globals=None):
+    def get(self, with_globals):
         return getattr(self._im_self, self._funcname)
 
 
@@ -414,9 +411,7 @@ class BrinedPartial(BrinedObject):
         self._keywords = brine(part.keywords or None)
 
 
-    def get(self, with_globals=None):
-
-        glbls = globals() if with_globals is None else with_globals
+    def get(self, with_globals):
 
         func = unbrine(self._func, with_globals)
         args = unbrine(self._args or tuple(), with_globals)

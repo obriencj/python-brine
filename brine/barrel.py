@@ -180,7 +180,7 @@ class BarreledPartial(BarreledObject, BrinedPartial):
         self._keywords = brine(part.keywords or None)
 
 
-    def get(self, with_globals=None):
+    def get(self, with_globals):
         unbrine = self.unbrine_related
         func = unbrine(self._func)
         args = unbrine(self._args or tuple())
