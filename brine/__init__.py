@@ -56,15 +56,14 @@ __all__ = [ "brine", "unbrine",
 
 
 def brine(value):
-
     """
     Wrap an object so that it may be pickled. Behavior by type of
     `value` is as follows:
 
     * `builtin_function_or_method` is unchanged
-    * `partial` is wrapped as a `BrinePartial`
-    * `instancemethod` is wrapped as a `BrineMethod`
-    * `function` is wrapped as a `BrineFunction`
+    * `partial` is wrapped as a `BrinedPartial`
+    * `instancemethod` is wrapped as a `BrinedMethod`
+    * `function` is wrapped as a `BrinedFunction`
     * `list` and `tuple` are duplicated and contents are brined
     * `dict` is duplicated and its values are brined
     * all other types are returned unchanged
@@ -108,14 +107,13 @@ def brine(value):
 
 
 def unbrine(value, with_globals=None):
-
     """
     Unwrap a `value` previously wrapped with the `brine`
     function. Behavior by type of `value` is as follows:
 
-    * `BrinePartial` unwraps to a `partial`
-    * `BrineMethod` unwraps to a `instancemethod`
-    * `BrineFunction` unwraps to a `function`
+    * `BrinedPartial` unwraps to a `partial`
+    * `BrinedMethod` unwraps to a `instancemethod`
+    * `BrinedFunction` unwraps to a `function`
     * `list` and `tuple` are duplicated and contents unbrined
     * `dict` is duplicated and its values are unbrined
 
@@ -311,7 +309,6 @@ class BrinedObject(object): # pragma: no cover
 
 
 class BrinedFunction(BrinedObject):
-
     """
     Wraps a function so that it may be pickled. For the most part
     you'll want to use the brine and unbrine functions from this
@@ -334,12 +331,11 @@ class BrinedFunction(BrinedObject):
     def _function_unnew(self, function):
         unfunc = function_unnew(function)
         unfunc[0] = self._code_unnew(unfunc[0])
-        unfunc[1] = dict() # func_globals
+        unfunc[1] = dict() # strip out func_globals
         return unfunc
 
 
     def _code_unnew(self, code):
-
         """
         can be overridden to process the unnew data
         """
@@ -348,7 +344,6 @@ class BrinedFunction(BrinedObject):
 
 
     def get(self, with_globals):
-
         # compose the function
         func = self._function_new(with_globals, list(self._unfunc))
 
@@ -369,7 +364,6 @@ class BrinedFunction(BrinedObject):
 
 
 class BrinedMethod(BrinedObject):
-
     """
     Wraps a bound method so that it can be pickled. By default pickle
     refuses to operate on bound instance method object. This wrapper
@@ -399,7 +393,6 @@ class BrinedMethod(BrinedObject):
 
 
 class BrinedPartial(BrinedObject):
-
     """
     Wrap a :class:`functools.partial` instance that references a
     function or method that is otherwise unsupported by pickle.
@@ -440,7 +433,6 @@ def _unpickle_cell(cell_val):
 
 
 def reg_cell_pickler():
-
     """
     Called automatically when the module is loaded, this function will
     ensure that the CellType has pickle/unpickle functions registered
