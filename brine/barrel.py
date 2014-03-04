@@ -37,7 +37,6 @@ __all__ = [ "Barrel", "BarreledObject",
 
 
 class BarreledObject(BrinedObject):
-
     """
     Abstract base class for barrel wrappers. Defines the interface
     required for a barrel to brine a value.
@@ -71,6 +70,7 @@ class BarreledObject(BrinedObject):
         barrel brine an internal value. This allows the barrel to act
         as a cache of the brining process.
         """
+
         return self._barrel._brine(value)
 
 
@@ -80,6 +80,7 @@ class BarreledObject(BrinedObject):
         barrel unbrine an internal value. This allows the barrel to
         act as a cache of the unbrining process.
         """
+
         return self._barrel._unbrine(brined_value)
 
 
@@ -93,7 +94,6 @@ class BarreledObject(BrinedObject):
 
 
 class BarreledFunction(BarreledObject, BrinedFunction):
-
     """
     A brined function in a barrel. This wrapper is created
     automatically around `function` instances in a `Barrel` when it is
@@ -153,7 +153,6 @@ class BarreledFunction(BarreledObject, BrinedFunction):
 
 
 class BarreledMethod(BarreledObject, BrinedMethod):
-
     """
     A brined bound method in a barrel.  This wrapper is created
     automatically around `instancemethod` instances in a `Barrel` when
@@ -164,7 +163,6 @@ class BarreledMethod(BarreledObject, BrinedMethod):
 
 
 class BarreledPartial(BarreledObject, BrinedPartial):
-
     """
     A brined partial in a barrel.  This wrapper is created
     automatically around `partial` instances in a `Barrel` when it is
@@ -189,20 +187,21 @@ class BarreledPartial(BarreledObject, BrinedPartial):
 
 
 class Barrel(object):
-
     """
     Mapping supporting automatic brining of contained values when
     pickled. Provides the `dict` interface special methods.
     """
 
-    def __init__(self, **values):
+    def __init__(self, *pairs, **values):
         """
-        Create an empty Barrel. Optionally initializes it with the mapping
-        from the `values` parameter.
+        Accepts a single optional positional argument, which must be a
+        `dict` or an iterable of key,value pairs. Also accepts an
+        arbutrary number of named parameters which will be used to
+        create further mappings.
         """
 
         self._brined = None
-        self._unbrined = dict(values)
+        self._unbrined = dict(*pairs, **values)
         self._glbls = globals()
         self._cache = None
 
