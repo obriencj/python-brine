@@ -76,6 +76,10 @@ def brine(value):
     In cases where uniqueness needs to be preserved, use a `Barrel`
     instead.
 
+    Also, if a brined function refers to other functions in its
+    closure cells, they will not be brined. Use a `Barrel` for those
+    cases as well.
+
     Parameters
     ----------
     value : `object`
