@@ -143,6 +143,9 @@ class CommonTests(object):
         add_8 = self.remote(partial(make_adder, 8))
         self.assertEqual(add_8(2), 10)
 
+        col = self.remote(partial(add_8, 10))
+        self.assertEqual(col, 18)
+
 
 class TestBrinedQueue(MultiprocessHarness, CommonTests, TestCase):
 
