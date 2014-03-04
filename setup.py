@@ -27,6 +27,7 @@ license: LGPL v.3
 
 
 from setuptools import setup, Extension
+import multiprocessing
 
 
 ext = [ Extension("brine._cellwork", ["brine/cellwork.c"]), ]
