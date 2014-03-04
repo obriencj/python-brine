@@ -144,7 +144,6 @@ class CommonTests(object):
         self.assertEqual(add_8(2), 10)
 
 
-
 class TestBrinedQueue(MultiprocessHarness, CommonTests, TestCase):
 
     def create_queue(self):
@@ -167,6 +166,32 @@ class TestBarreledQueue(MultiprocessHarness, CommonTests, TestCase):
 
     def create_queue(self):
         return BarreledQueue()
+
+
+    def test_method_sendalong(self):
+        o = Obj("Hungry")
+
+        getter = o.get_value
+        setter = o.set_value
+
+        # here we are sending instance methods along in cells on our
+        # function, in addition to the object itself. We need a barrel
+        # to perform the conversion of those cells.
+        r = lambda o: [getter(), setter("Tacos"), getter(), o]
+        col = self.remote(r, o)
+
+        self.assertEqual(col[:-1], ["Hungry", None, "Tacos"])
+        self.assertEqual(col[-1].get_value(), "Tacos")
+
+
+    def test_anon_recursive_inner(self):
+        add_8 = self.remote(make_recursive_adder, 8)
+
+        self.assertTrue(callable(add_8))
+        self.assertEqual(add_8(10), 18)
+
+        col = self.remote(add_8, 10)
+        self.assertEqual(col, 18)
 
 
 class TestBarreledJoinableQueue(TestBarreledQueue):
