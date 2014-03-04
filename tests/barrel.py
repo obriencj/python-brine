@@ -228,7 +228,7 @@ class TestBarrel(unittest.TestCase):
         self.assertEqual(ngetter1(), "Hello World")
 
         # show we're not connected to the original
-        assert(getter() == "Tacos")
+        self.assertEqual(getter(), "Tacos")
 
 
     def test_barrel_dict(self):
