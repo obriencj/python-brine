@@ -41,9 +41,6 @@ setup( name = "brine",
 
        test_suite = "tests",
 
-       extras_require = {
-           "epydoc": [ "epydoc" ], },
-
        # PyPI information
        author = "Christopher O'Brien",
        author_email = "obriencj@gmail.com",
