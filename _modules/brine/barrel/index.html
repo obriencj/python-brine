@@ -90,7 +90,6 @@
 
 
 <div class="viewcode-block" id="BarreledObject"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarreledObject">[docs]</a><span class="k">class</span> <span class="nc">BarreledObject</span><span class="p">(</span><span class="n">BrinedObject</span><span class="p">):</span>
-
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract base class for barrel wrappers. Defines the interface</span>
 <span class="sd">    required for a barrel to brine a value.</span>
@@ -124,6 +123,7 @@
 <span class="sd">        barrel brine an internal value. This allows the barrel to act</span>
 <span class="sd">        as a cache of the brining process.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="o">.</span><span class="n">_brine</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
 </div>
@@ -133,6 +133,7 @@
 <span class="sd">        barrel unbrine an internal value. This allows the barrel to</span>
 <span class="sd">        act as a cache of the unbrining process.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_barrel</span><span class="o">.</span><span class="n">_unbrine</span><span class="p">(</span><span class="n">brined_value</span><span class="p">)</span>
 
 </div>
@@ -146,7 +147,6 @@
 
 </div>
 <div class="viewcode-block" id="BarreledFunction"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarreledFunction">[docs]</a><span class="k">class</span> <span class="nc">BarreledFunction</span><span class="p">(</span><span class="n">BarreledObject</span><span class="p">,</span> <span class="n">BrinedFunction</span><span class="p">):</span>
-
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A brined function in a barrel. This wrapper is created</span>
 <span class="sd">    automatically around `function` instances in a `Barrel` when it is</span>
@@ -206,7 +206,6 @@
 
 </div>
 <div class="viewcode-block" id="BarreledMethod"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarreledMethod">[docs]</a><span class="k">class</span> <span class="nc">BarreledMethod</span><span class="p">(</span><span class="n">BarreledObject</span><span class="p">,</span> <span class="n">BrinedMethod</span><span class="p">):</span>
-
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A brined bound method in a barrel.  This wrapper is created</span>
 <span class="sd">    automatically around `instancemethod` instances in a `Barrel` when</span>
@@ -217,7 +216,6 @@
 
 </div>
 <div class="viewcode-block" id="BarreledPartial"><a class="viewcode-back" href="../../../barrel/#brine.barrel.BarreledPartial">[docs]</a><span class="k">class</span> <span class="nc">BarreledPartial</span><span class="p">(</span><span class="n">BarreledObject</span><span class="p">,</span> <span class="n">BrinedPartial</span><span class="p">):</span>
-
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A brined partial in a barrel.  This wrapper is created</span>
 <span class="sd">    automatically around `partial` instances in a `Barrel` when it is</span>
@@ -242,20 +240,21 @@
 
 </div>
 <div class="viewcode-block" id="Barrel"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel">[docs]</a><span class="k">class</span> <span class="nc">Barrel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Mapping supporting automatic brining of contained values when</span>
 <span class="sd">    pickled. Provides the `dict` interface special methods.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Barrel.__init__"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">values</span><span class="p">):</span>
+<div class="viewcode-block" id="Barrel.__init__"><a class="viewcode-back" href="../../../barrel/#brine.barrel.Barrel.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">pairs</span><span class="p">,</span> <span class="o">**</span><span class="n">values</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create an empty Barrel. Optionally initializes it with the mapping</span>
-<span class="sd">        from the `values` parameter.</span>
+<span class="sd">        Accepts a single optional positional argument, which must be a</span>
+<span class="sd">        `dict` or an iterable of key,value pairs. Also accepts an</span>
+<span class="sd">        arbutrary number of named parameters which will be used to</span>
+<span class="sd">        create further mappings.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_brined</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_unbrined</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="o">*</span><span class="n">pairs</span><span class="p">,</span> <span class="o">**</span><span class="n">values</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_glbls</span> <span class="o">=</span> <span class="nb">globals</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="bp">None</span>
 

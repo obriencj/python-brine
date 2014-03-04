@@ -12,6 +12,7 @@ Brine -- Advanced pickling of functions for Python
    overview
    brine
    barrel
+   queues
 
 
 Indices and tables

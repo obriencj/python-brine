@@ -2,7 +2,6 @@ Module brine.barrel
 ===================
 
 .. automodule:: brine.barrel
-    :members: _
     :show-inheritance:
 
     Barrel

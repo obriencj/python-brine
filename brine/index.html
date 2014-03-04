@@ -56,8 +56,8 @@
           <div class="body">
             
   <div class="section" id="module-brine">
-<h1>Module brine<a class="headerlink" href="#module-brine" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-brine"></span><p>Brine provides a way to wrap function objects so that they may be
+<span id="module-brine"></span><h1>Module brine<a class="headerlink" href="#module-brine" title="Permalink to this headline">¶</a></h1>
+<p>Brine provides a way to wrap function objects so that they may be
 pickled.</p>
 <p>To truly pickle a function we need to be able to duplicate its code
 and its closures. By default, <cite>pickle</cite> will simply store the
@@ -69,9 +69,9 @@ not otherwise defined at the top level.</p>
 unpickling the wrapper, call <cite>unbrine</cite> to get a new copy of the
 original function.</p>
 <p>Loading this module has the side effect of registering a pickle
-handler for the <cite>CellType</cite> type. This should be of low impact, as the
-only place this type is used is within function instances, and it
-typically unexposed.</p>
+handler for the <cite>CellType</cite> and <cite>CodeType</cite> types. This should be of low
+impact, as the only place these types are used is within function
+instances, and are typically unexposed.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -91,9 +91,9 @@ typically unexposed.</p>
 <cite>value</cite> is as follows:</p>
 <ul class="simple">
 <li><cite>builtin_function_or_method</cite> is unchanged</li>
-<li><cite>partial</cite> is wrapped as a <cite>BrinePartial</cite></li>
-<li><cite>instancemethod</cite> is wrapped as a <cite>BrineMethod</cite></li>
-<li><cite>function</cite> is wrapped as a <cite>BrineFunction</cite></li>
+<li><cite>partial</cite> is wrapped as a <cite>BrinedPartial</cite></li>
+<li><cite>instancemethod</cite> is wrapped as a <cite>BrinedMethod</cite></li>
+<li><cite>function</cite> is wrapped as a <cite>BrinedFunction</cite></li>
 <li><cite>list</cite> and <cite>tuple</cite> are duplicated and contents are brined</li>
 <li><cite>dict</cite> is duplicated and its values are brined</li>
 <li>all other types are returned unchanged</li>
@@ -104,6 +104,9 @@ each will be wrapped individually and as a result will be
 duplicated when unbrined.</p>
 <p>In cases where uniqueness needs to be preserved, use a <cite>Barrel</cite>
 instead.</p>
+<p>Also, if a brined function refers to other functions in its
+closure cells, they will not be brined. Use a <cite>Barrel</cite> for those
+cases as well.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -130,9 +133,9 @@ instead.</p>
 <dd><p>Unwrap a <cite>value</cite> previously wrapped with the <cite>brine</cite>
 function. Behavior by type of <cite>value</cite> is as follows:</p>
 <ul class="simple">
-<li><cite>BrinePartial</cite> unwraps to a <cite>partial</cite></li>
-<li><cite>BrineMethod</cite> unwraps to a <cite>instancemethod</cite></li>
-<li><cite>BrineFunction</cite> unwraps to a <cite>function</cite></li>
+<li><cite>BrinedPartial</cite> unwraps to a <cite>partial</cite></li>
+<li><cite>BrinedMethod</cite> unwraps to a <cite>instancemethod</cite></li>
+<li><cite>BrinedFunction</cite> unwraps to a <cite>function</cite></li>
 <li><cite>list</cite> and <cite>tuple</cite> are duplicated and contents unbrined</li>
 <li><cite>dict</cite> is duplicated and its values are unbrined</li>
 </ul>

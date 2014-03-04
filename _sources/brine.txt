@@ -2,7 +2,6 @@ Module brine
 ============
 
 .. automodule:: brine
-  :members: _
   :show-inheritance:
 
   Functions

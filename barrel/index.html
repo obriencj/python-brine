@@ -24,6 +24,7 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="top" title="brine 0.9.0 documentation" href="../" />
+    <link rel="next" title="Module brine.queues" href="../queues/" />
     <link rel="prev" title="Module brine" href="../brine/" /> 
   </head>
   <body>
@@ -40,6 +41,9 @@
           <a href="../np-modindex/" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
+          <a href="../queues/" title="Module brine.queues"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
           <a href="../brine/" title="Module brine"
              accesskey="P">previous</a> |</li>
         <li><a href="../">brine 0.9.0 documentation</a> &raquo;</li> 
@@ -51,9 +55,9 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-brine-barrel">
-<h1>Module brine.barrel<a class="headerlink" href="#module-brine-barrel" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-brine.barrel"></span><p>Provides a way to wrap multiple interrelated functions, while
+  <div class="section" id="module-brine.barrel">
+<span id="module-brine-barrel"></span><h1>Module brine.barrel<a class="headerlink" href="#module-brine.barrel" title="Permalink to this headline">¶</a></h1>
+<p>Provides a way to wrap multiple interrelated functions, while
 preserving uniqueness.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -69,14 +73,16 @@ preserving uniqueness.</p>
 <h2>Barrel<a class="headerlink" href="#barrel" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="brine.barrel.Barrel">
-<em class="property">class </em><tt class="descclassname">brine.barrel.</tt><tt class="descname">Barrel</tt><big>(</big><em>**values</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">brine.barrel.</tt><tt class="descname">Barrel</tt><big>(</big><em>*pairs</em>, <em>**values</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mapping supporting automatic brining of contained values when
 pickled. Provides the <cite>dict</cite> interface special methods.</p>
 <dl class="method">
 <dt id="brine.barrel.Barrel.__init__">
-<tt class="descname">__init__</tt><big>(</big><em>**values</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an empty Barrel. Optionally initializes it with the mapping
-from the <cite>values</cite> parameter.</p>
+<tt class="descname">__init__</tt><big>(</big><em>*pairs</em>, <em>**values</em><big>)</big><a class="reference internal" href="../_modules/brine/barrel/#Barrel.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#brine.barrel.Barrel.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accepts a single optional positional argument, which must be a
+<cite>dict</cite> or an iterable of key,value pairs. Also accepts an
+arbutrary number of named parameters which will be used to
+create further mappings.</p>
 </dd></dl>
 
 <dl class="method">
@@ -211,6 +217,9 @@ pickled.</p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="../brine/"
                         title="previous chapter">Module brine</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../queues/"
+                        title="next chapter">Module brine.queues</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/barrel.txt"
@@ -245,6 +254,9 @@ pickled.</p>
         <li class="right" >
           <a href="../np-modindex/" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="../queues/" title="Module brine.queues"
+             >next</a> |</li>
         <li class="right" >
           <a href="../brine/" title="Module brine"
              >previous</a> |</li>

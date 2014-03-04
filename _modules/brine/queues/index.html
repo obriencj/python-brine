@@ -1,0 +1,292 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>brine.queues &mdash; brine 0.9.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.9.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="brine 0.9.0 documentation" href="../../../" />
+    <link rel="up" title="brine" href="../" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex/" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../">brine 0.9.0 documentation</a> &raquo;</li>
+          <li><a href="../../" >Module code</a> &raquo;</li>
+          <li><a href="../" accesskey="U">brine</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for brine.queues</h1><div class="highlight"><pre>
+<span class="c"># This library is free software; you can redistribute it and/or modify</span>
+<span class="c"># it under the terms of the GNU Lesser General Public License as</span>
+<span class="c"># published by the Free Software Foundation; either version 3 of the</span>
+<span class="c"># License, or (at your option) any later version.</span>
+<span class="c">#</span>
+<span class="c"># This library is distributed in the hope that it will be useful, but</span>
+<span class="c"># WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU</span>
+<span class="c"># Lesser General Public License for more details.</span>
+<span class="c">#</span>
+<span class="c"># You should have received a copy of the GNU Lesser General Public</span>
+<span class="c"># License along with this library; if not, see</span>
+<span class="c"># &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Queue subclasses supporting automatic brining or barreling of</span>
+<span class="sd">values as they are passed along.</span>
+
+<span class="sd">These facilitate the sending of callable code between processes for</span>
+<span class="sd">parallel execution.</span>
+
+<span class="sd">It can conceivably be used to send callable code between machines as</span>
+<span class="sd">well (eg: via a network socket). Utmost care must be taken to ensure</span>
+<span class="sd">the transport medium is used securely, to prevent an intruder from</span>
+<span class="sd">executing arbitrary code on the host.</span>
+
+<span class="sd">:author: Christopher O&#39;Brien  &lt;obriencj@gmail.com&gt;</span>
+<span class="sd">:license: LGPL v.3</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABCMeta</span>
+<span class="kn">from</span> <span class="nn">brine</span> <span class="kn">import</span> <span class="n">brine</span><span class="p">,</span> <span class="n">unbrine</span>
+<span class="kn">from</span> <span class="nn">.barrel</span> <span class="kn">import</span> <span class="n">Barrel</span>
+<span class="kn">from</span> <span class="nn">multiprocessing.queues</span> <span class="kn">import</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">JoinableQueue</span><span class="p">,</span> <span class="n">SimpleQueue</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s">&quot;BrinedQueueMix&quot;</span><span class="p">,</span>
+    <span class="s">&quot;BrinedQueue&quot;</span><span class="p">,</span> <span class="s">&quot;BrinedJoinableQueue&quot;</span><span class="p">,</span> <span class="s">&quot;BrinedSimpleQueue&quot;</span><span class="p">,</span>
+    <span class="s">&quot;BarreledQueueMix&quot;</span><span class="p">,</span>
+    <span class="s">&quot;BarreledQueue&quot;</span><span class="p">,</span> <span class="s">&quot;BarreledJoinableQueue&quot;</span><span class="p">,</span> <span class="s">&quot;BarreledSimpleQueue&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">BrinedQueueMix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin that overrides the `put`, `get` methods to automatically</span>
+<span class="sd">    `brine`, `unbrine` the passed value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+
+
+    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="n">brine</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BrinedQueueMix</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">):</span>
+        <span class="n">value</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">BrinedQueueMix</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">unbrine</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BrinedQueue"><a class="viewcode-back" href="../../../queues/#brine.queues.BrinedQueue">[docs]</a><span class="k">class</span> <span class="nc">BrinedQueue</span><span class="p">(</span><span class="n">BrinedQueueMix</span><span class="p">,</span> <span class="n">Queue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A `Queue` that takes the additional step of calling `brine` on its</span>
+<span class="sd">    `put` argumens, and `unbrine` on its `get` results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="BrinedJoinableQueue"><a class="viewcode-back" href="../../../queues/#brine.queues.BrinedJoinableQueue">[docs]</a><span class="k">class</span> <span class="nc">BrinedJoinableQueue</span><span class="p">(</span><span class="n">BrinedQueueMix</span><span class="p">,</span> <span class="n">JoinableQueue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A `JoinableQueue` that takes the additional step of calling</span>
+<span class="sd">    `brine` on its `put` argumens, and `unbrine` on its `get` results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="BrinedSimpleQueue"><a class="viewcode-back" href="../../../queues/#brine.queues.BrinedSimpleQueue">[docs]</a><span class="k">class</span> <span class="nc">BrinedSimpleQueue</span><span class="p">(</span><span class="n">SimpleQueue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A `SimpleQueue` that takes the additional step of calling `brine`</span>
+<span class="sd">    on its `put` argumens, and `unbrine` on its `get` results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_make_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># SimpleQueue doesn&#39;t have get/put methods, it has fields by</span>
+        <span class="c"># those names that just happen to be functions or bound</span>
+        <span class="c"># methods which write to its underlying pipe. As such, we</span>
+        <span class="c"># won&#39;t attempt to override them. Instead we&#39;ll replace the</span>
+        <span class="c"># values with wrappers.</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">BrinedSimpleQueue</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_make_methods</span><span class="p">()</span>
+
+        <span class="n">_put</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">put</span>
+        <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">_put</span><span class="p">(</span><span class="n">brine</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">put</span> <span class="o">=</span> <span class="n">put</span>
+
+        <span class="n">_get</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span>
+        <span class="k">def</span> <span class="nf">get</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">unbrine</span><span class="p">(</span><span class="n">_get</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get</span> <span class="o">=</span> <span class="n">get</span>
+
+</div>
+<span class="k">class</span> <span class="nc">BarreledQueueMix</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Mixin that overrides the `put`, `get` methods to automatically</span>
+<span class="sd">    pack into or unpack from a `Barrel`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">ABCMeta</span>
+
+
+    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">):</span>
+        <span class="n">bar</span> <span class="o">=</span> <span class="n">Barrel</span><span class="p">()</span>
+        <span class="n">bar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">BarreledQueueMix</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">bar</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">):</span>
+        <span class="n">bar</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">BarreledQueueMix</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="BarreledQueue"><a class="viewcode-back" href="../../../queues/#brine.queues.BarreledQueue">[docs]</a><span class="k">class</span> <span class="nc">BarreledQueue</span><span class="p">(</span><span class="n">BarreledQueueMix</span><span class="p">,</span> <span class="n">Queue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A `Queue` that takes the additional step of packing its `put`</span>
+<span class="sd">    argument into a `Barrel` and unpacking its `get` results from a</span>
+<span class="sd">    `Barrel`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="BarreledJoinableQueue"><a class="viewcode-back" href="../../../queues/#brine.queues.BarreledJoinableQueue">[docs]</a><span class="k">class</span> <span class="nc">BarreledJoinableQueue</span><span class="p">(</span><span class="n">BarreledQueueMix</span><span class="p">,</span> <span class="n">JoinableQueue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A `JoinableQueue` that takes the additional step of packing its</span>
+<span class="sd">    `put` argument into a `Barrel` and unpacking its `get` results</span>
+<span class="sd">    from a `Barrel`</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="BarreledSimpleQueue"><a class="viewcode-back" href="../../../queues/#brine.queues.BarreledSimpleQueue">[docs]</a><span class="k">class</span> <span class="nc">BarreledSimpleQueue</span><span class="p">(</span><span class="n">SimpleQueue</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A `SimpleQueue` that packs data into a `Barrel` before sending</span>
+<span class="sd">    with the `put` method, and unpacks data from a `Barrel` before</span>
+<span class="sd">    returning from the `get` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_make_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># SimpleQueue doesn&#39;t have get/put methods, it has fields by</span>
+        <span class="c"># those names that just happen to be functions or bound</span>
+        <span class="c"># methods which write to its underlying pipe. As such, we</span>
+        <span class="c"># won&#39;t attempt to override them. Instead we&#39;ll replace the</span>
+        <span class="c"># values with wrappers.</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">BarreledSimpleQueue</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_make_methods</span><span class="p">()</span>
+
+        <span class="n">_get</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span>
+        <span class="k">def</span> <span class="nf">get</span><span class="p">():</span>
+            <span class="n">bar</span> <span class="o">=</span> <span class="n">_get</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">bar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get</span> <span class="o">=</span> <span class="n">get</span>
+
+        <span class="n">_put</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">put</span>
+        <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+            <span class="n">bar</span> <span class="o">=</span> <span class="n">Barrel</span><span class="p">()</span>
+            <span class="n">bar</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="n">_put</span><span class="p">(</span><span class="n">bar</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">put</span> <span class="o">=</span> <span class="n">put</span>
+
+
+<span class="c">#</span>
+<span class="c"># The end.</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search/" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex/" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../../../np-modindex/" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../">brine 0.9.0 documentation</a> &raquo;</li>
+          <li><a href="../../" >Module code</a> &raquo;</li>
+          <li><a href="../" >brine</a> &raquo;</li> 
+      </ul>
+    </div>
+
+    <div class="footer">
+        &copy; Copyright 2014, Christopher O&#39;Brien.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+    </div>
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-47351906-2");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+
+  </body>
+</html>
