@@ -58,8 +58,7 @@ def make_pair(value):
     return get_value, set_value
 
 
-def make_adder(by_i=0):
-    return lambda x=0: x+by_i
+make_adder = lambda by_x=0: lambda by_y=0: by_x+by_y
 
 
 class TestUnnew(unittest.TestCase):
@@ -274,6 +273,18 @@ class TestBrine(unittest.TestCase):
 
         ngive_taco()
         self.assertEqual(ngetter(), "Taco")
+
+
+    def test_make_adder(self):
+        # Test pickling of a function that returns a function (this
+        # means that there is a code object embedded in the closure)
+        #
+        # This is why we register a pickler for code types.
+
+        my_adder = unbrine(pickle_unpickle(brine(make_adder)))
+
+        add_8 = my_adder(8)
+        self.assertEqual(add_8(2), 10)
 
 
 #

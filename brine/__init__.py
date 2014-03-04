@@ -29,9 +29,9 @@ unpickling the wrapper, call `unbrine` to get a new copy of the
 original function.
 
 Loading this module has the side effect of registering a pickle
-handler for the `CellType` type. This should be of low impact, as the
-only place this type is used is within function instances, and it
-typically unexposed.
+handler for the `CellType` and `CodeType` types. This should be of low
+impact, as the only place these types are used is within function
+instances, and are typically unexposed.
 
 :author: Christopher O'Brien  <obriencj@gmail.com>
 :license: LGPL v.3
@@ -41,7 +41,7 @@ typically unexposed.
 from abc import ABCMeta, abstractmethod
 from functools import partial
 from types import BuiltinFunctionType, BuiltinMethodType
-from types import FunctionType, MethodType
+from types import FunctionType, MethodType, CodeType
 from ._cellwork import CellType, cell_get_value, cell_from_value
 
 import copy_reg
@@ -444,6 +444,30 @@ def reg_cell_pickler():
 
 # register when the module is loaded
 reg_cell_pickler()
+
+
+def _pickle_code(code):
+    return _unpickle_code, tuple(code_unnew(code))
+
+
+def _unpickle_code(*code_val):
+    return code_new(*code_val)
+
+
+def reg_code_pickler():
+    """
+    Called automatically when the module is loaded, this function will
+    ensure that the CodeType has pickle/unpickle functions registered
+    with copy_reg
+    """
+
+    copy_reg.pickle(CodeType, _pickle_code, _unpickle_code)
+
+
+# Register when the module is loaded. Note, we do this to support
+# pickling of functions which return other functions. The code for the
+# anonymous inner is captured in a closure cell of the outer.
+reg_code_pickler()
 
 
 #
