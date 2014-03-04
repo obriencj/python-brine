@@ -103,10 +103,12 @@ class MultiprocessHarness(object):
         self.process.join()
         self.process = None
 
-        self.tasks.close()
+        if hasattr(self.tasks, "close"):
+            self.tasks.close()
         self.tasks = None
 
-        self.results.close()
+        if hasattr(self.results, "close"):
+            self.results.close()
         self.results = None
 
 
@@ -155,6 +157,12 @@ class TestBrinedJoinableQueue(TestBrinedQueue):
         return BrinedJoinableQueue()
 
 
+class TestBrinedSimpleQueue(TestBrinedQueue):
+
+    def create_queue(self):
+        return BrinedSimpleQueue()
+
+
 class TestBarreledQueue(MultiprocessHarness, CommonTests, TestCase):
 
     def create_queue(self):
@@ -165,6 +173,12 @@ class TestBarreledJoinableQueue(TestBarreledQueue):
 
     def create_queue(self):
         return BarreledJoinableQueue()
+
+
+class TestBarreledSimpleQueue(TestBarreledQueue):
+
+    def create_queue(self):
+        return BarreledSimpleQueue()
 
 
 #
