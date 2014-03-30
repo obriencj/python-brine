@@ -34,7 +34,7 @@ ext = [ Extension("brine._cellwork", ["brine/cellwork.c"]), ]
 
 
 setup( name = "brine",
-       version = "0.9.0",
+       version = "1.0.0",
 
        packages = [ "brine" ],
 
