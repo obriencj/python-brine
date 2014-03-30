@@ -16,22 +16,16 @@ including any closures, and then restore them again.
 For more advanced features, there is the ``brine.barrel``
 `module <http://obriencj.preoccupied.net/python-brine/barrel/>`__. A
 barrel is a dictionary-like interface for brining multiple functions.
-Barrel's internal bringin step is recursive. This allows anonymous
-functions to work on closure's referring to other anonymous functions
+Barrel's internal brining step is recursive. This allows anonymous
+functions to work on closures referring to other anonymous functions
 (eg: mutually recursive lambdas and the like). It also preserves
 uniqueness, if you happen to add the same function multiple times.
-
-I've set the version to 0.9.0 and will not be promising any API
-stability until 1.0.0 is reached. Until such time as I set the API in
-stone, avoid depending on this module for anything serious. That said, I
-do not believe it has much further to go before being ready.
 
 -  `python-brine
    documentation <http://obriencj.preoccupied.net/python-brine/>`__
 -  `python-brine on
    GitHub <https://github.com/obriencj/python-brine/>`__
--  python-brine not on `PyPI <https://pypi.python.org/pypi>`__ until
-   version 1.0.0
+-  `python-brine on PyPI <https://pypi.python.org/pypi/brine>`__
 
 Using brine
 -----------
@@ -227,17 +221,16 @@ the documentation:
 Documentation is `also available
 online <http://obriencj.preoccupied.net/python-brine/>`__.
 
-TODO
-----
+Future Enhancements
+-------------------
 
-The following tasks need to be taken care of before we reach the point
-of tagging a 1.0.0 release and subsequently publishing to
-`PyPI <https://pypi.python.org/pypi>`__.
+Some posibile enhancements for future minor versions
 
--  Perhaps a PKI signing step (optionally) since we are in-fact sending
-   executable code around? TBD
+-  Should we provide a wrapper for exceptions and/or stack traces?
 -  Should we allow users to extend ``BrineObject``, in the same manner
-   that pickle can be (somewhat) extended today? TBD.
+   that pickle can be (somewhat) extended today?
+-  Perhaps a PKI signing step since we are in-fact sending executable
+   code around? This might be better relegated to a separate project.
 
 Author
 ------

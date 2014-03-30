@@ -70,21 +70,16 @@ including any closures, and then restore them again.</p>
 <p>For more advanced features, there is the <tt class="docutils literal"><span class="pre">brine.barrel</span></tt>
 <a class="reference external" href="http://obriencj.preoccupied.net/python-brine/barrel/">module</a>. A
 barrel is a dictionary-like interface for brining multiple functions.
-Barrel&#8217;s internal bringin step is recursive. This allows anonymous
-functions to work on closure&#8217;s referring to other anonymous functions
+Barrel&#8217;s internal brining step is recursive. This allows anonymous
+functions to work on closures referring to other anonymous functions
 (eg: mutually recursive lambdas and the like). It also preserves
 uniqueness, if you happen to add the same function multiple times.</p>
-<p>I&#8217;ve set the version to 0.9.0 and will not be promising any API
-stability until 1.0.0 is reached. Until such time as I set the API in
-stone, avoid depending on this module for anything serious. That said, I
-do not believe it has much further to go before being ready.</p>
 <ul class="simple">
 <li><a class="reference external" href="http://obriencj.preoccupied.net/python-brine/">python-brine
 documentation</a></li>
 <li><a class="reference external" href="https://github.com/obriencj/python-brine/">python-brine on
 GitHub</a></li>
-<li>python-brine not on <a class="reference external" href="https://pypi.python.org/pypi">PyPI</a> until
-version 1.0.0</li>
+<li><a class="reference external" href="https://pypi.python.org/pypi/brine">python-brine on PyPI</a></li>
 </ul>
 <div class="section" id="using-brine">
 <h2>Using brine<a class="headerlink" href="#using-brine" title="Permalink to this headline">¶</a></h2>
@@ -260,16 +255,15 @@ the documentation:</p>
 online</a>.</p>
 </div>
 </div>
-<div class="section" id="todo">
-<h2>TODO<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h2>
-<p>The following tasks need to be taken care of before we reach the point
-of tagging a 1.0.0 release and subsequently publishing to
-<a class="reference external" href="https://pypi.python.org/pypi">PyPI</a>.</p>
+<div class="section" id="future-enhancements">
+<h2>Future Enhancements<a class="headerlink" href="#future-enhancements" title="Permalink to this headline">¶</a></h2>
+<p>Some posibile enhancements for future minor versions</p>
 <ul class="simple">
-<li>Perhaps a PKI signing step (optionally) since we are in-fact sending
-executable code around? TBD</li>
+<li>Should we provide a wrapper for exceptions and/or stack traces?</li>
 <li>Should we allow users to extend <tt class="docutils literal"><span class="pre">BrineObject</span></tt>, in the same manner
-that pickle can be (somewhat) extended today? TBD.</li>
+that pickle can be (somewhat) extended today?</li>
+<li>Perhaps a PKI signing step since we are in-fact sending executable
+code around? This might be better relegated to a separate project.</li>
 </ul>
 </div>
 <div class="section" id="author">
@@ -313,7 +307,7 @@ along with this library; if not, see <a class="reference external" href="http://
 <li><a class="reference internal" href="#documentation">Documentation</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#todo">TODO</a></li>
+<li><a class="reference internal" href="#future-enhancements">Future Enhancements</a></li>
 <li><a class="reference internal" href="#author">Author</a></li>
 <li><a class="reference internal" href="#license">License</a></li>
 </ul>
@@ -372,7 +366,7 @@ along with this library; if not, see <a class="reference external" href="http://
 
     <div class="footer">
         &copy; Copyright 2014, Christopher O&#39;Brien.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.1.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
