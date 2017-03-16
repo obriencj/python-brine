@@ -30,10 +30,10 @@ executing arbitrary code on the host.
 """
 
 
-from abc import ABCMeta
-from brine import brine, unbrine
+from . import brine, unbrine
 from .barrel import Barrel
-from multiprocessing.queues import Queue, JoinableQueue, SimpleQueue
+from abc import ABCMeta
+from multiprocessing.queues import JoinableQueue, Queue, SimpleQueue
 
 
 __all__ = (

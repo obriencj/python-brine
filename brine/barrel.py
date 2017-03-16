@@ -23,8 +23,8 @@ preserving uniqueness.
 
 
 from abc import ABCMeta
-from brine import BrinedObject, BrinedFunction, BrinedMethod, BrinedPartial
-from brine._cellwork import cell_get_value, cell_set_value, cell_from_value
+from . import BrinedObject, BrinedFunction, BrinedMethod, BrinedPartial
+from ._cellwork import cell_get_value, cell_set_value, cell_from_value
 from functools import partial
 from itertools import imap
 from types import BuiltinFunctionType, BuiltinMethodType

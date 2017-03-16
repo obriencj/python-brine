@@ -38,11 +38,11 @@ instances, and are typically unexposed.
 """
 
 
+from ._cellwork import CellType, cell_get_value, cell_from_value
 from abc import ABCMeta, abstractmethod
 from functools import partial
 from types import BuiltinFunctionType, BuiltinMethodType
 from types import FunctionType, MethodType, CodeType
-from ._cellwork import CellType, cell_get_value, cell_from_value
 
 import copy_reg
 import new
