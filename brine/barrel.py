@@ -24,7 +24,6 @@ preserving uniqueness.
 
 from abc import ABCMeta
 from brine import BrinedObject, BrinedFunction, BrinedMethod, BrinedPartial
-from brine import brine, unbrine
 from brine._cellwork import cell_get_value, cell_set_value, cell_from_value
 from functools import partial
 from itertools import imap
@@ -32,8 +31,8 @@ from types import BuiltinFunctionType, BuiltinMethodType
 from types import FunctionType, MethodType
 
 
-__all__ = [ "Barrel", "BarreledObject",
-            "BarreledFunction", "BarreledMethod", "BarreledPartial" ]
+__all__ = ("Barrel", "BarreledObject",
+           "BarreledFunction", "BarreledMethod", "BarreledPartial", )
 
 
 class BarreledObject(BrinedObject):
@@ -422,7 +421,7 @@ class Barrel(object):
                 self._putcache(value, ret)
             value = ret
 
-        elif isinstance(value, (tuple,list)):
+        elif isinstance(value, (tuple, list)):
             ret = self._getcache(value)
             if ret is None:
                 vt = type(value)
