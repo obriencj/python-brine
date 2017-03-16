@@ -17,49 +17,49 @@
 
 
 """
-
 Brine, advanced pickle features for python
 
 author: Christopher O'Brien  <obriencj@gmail.com>
 license: LGPL v.3
-
 """
 
 
 from setuptools import setup, Extension
-import multiprocessing
+import multiprocessing  # NOQA : this import is required for tests to work
 
 
-ext = [ Extension("brine._cellwork", ["brine/cellwork.c"]), ]
+ext = [Extension("brine._cellwork", ["brine/cellwork.c"]), ]
 
 
-setup( name = "brine",
-       version = "1.0.0",
+setup(name = "brine",
+      version = "1.0.0",
 
-       packages = [ "brine" ],
+      packages = ["brine", ],
 
-       ext_modules = ext,
+      ext_modules = ext,
 
-       test_suite = "tests",
+      test_suite = "tests",
 
-       # PyPI information
-       author = "Christopher O'Brien",
-       author_email = "obriencj@gmail.com",
-       url = "https://github.com/obriencj/python-brine",
-       license = "GNU Lesser General Public License",
+      # PyPI information
+      author = "Christopher O'Brien",
+      author_email = "obriencj@gmail.com",
+      url = "https://github.com/obriencj/python-brine",
+      license = "GNU Lesser General Public License",
 
-       description = "Advanced pickle features, such as anonymous"
-       " function pickling",
+      description = "Advanced pickle features, such as anonymous"
+      " function pickling",
 
-       provides = [ "brine" ],
-       requires = [],
-       platforms = [ "python2 >= 2.6" ],
+      provides = ["brine", ],
+      requires = [],
+      platforms = ["python2 >= 2.6", ],
 
-       zip_safe = True,
+      zip_safe = True,
 
-       classifiers = ["Intended Audience :: Developers",
-                      "Programming Language :: Python :: 2",
-                      "Topic :: Software Development"], )
+      classifiers = [
+          "Intended Audience :: Developers",
+          "Programming Language :: Python :: 2",
+          "Topic :: Software Development",
+      ])
 
 #
 # The end.
