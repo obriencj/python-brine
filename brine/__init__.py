@@ -48,11 +48,11 @@ import copy_reg
 import new
 
 
-__all__ = [ "brine", "unbrine",
-            "BrinedObject",
-            "BrinedFunction", "BrinedMethod", "BrinedPartial",
-            "code_unnew", "code_new",
-            "function_unnew", "function_new" ]
+__all__ = ("brine", "unbrine",
+           "BrinedObject",
+           "BrinedFunction", "BrinedMethod", "BrinedPartial",
+           "code_unnew", "code_new",
+           "function_unnew", "function_new", )
 
 
 def brine(value):
@@ -105,7 +105,7 @@ def brine(value):
         return ty(brine(i) for i in iter(value))
     elif isinstance(value, dict):
         items = value.items()
-        return dict((key,brine(val)) for key,val in items)
+        return dict((key, brine(val)) for key, val in items)
     else:
         return value
 
@@ -145,13 +145,12 @@ def unbrine(value, with_globals=None):
         return ty(unbrine(i, glbls) for i in iter(value))
     elif isinstance(value, dict):
         items = value.items()
-        return dict((key,unbrine(val, glbls)) for key,val in items)
+        return dict((key, unbrine(val, glbls)) for key, val in items)
     else:
         return value
 
 
 def code_unnew(code):
-
     """
     The necessary arguments for use in :func:`code_new` to create an
     identical but distinct :data:`~types.CodeType` instance.
@@ -161,26 +160,25 @@ def code_unnew(code):
     :return: :class:`list` of member values of `code`
     """
 
-    return [ code.co_argcount,
-             code.co_nlocals,
-             code.co_stacksize,
-             code.co_flags,
-             code.co_code,
-             code.co_consts,
-             code.co_names,
-             code.co_varnames,
-             code.co_filename,
-             code.co_name,
-             code.co_firstlineno,
-             code.co_lnotab,
-             code.co_freevars,
-             code.co_cellvars ]
+    return [code.co_argcount,
+            code.co_nlocals,
+            code.co_stacksize,
+            code.co_flags,
+            code.co_code,
+            code.co_consts,
+            code.co_names,
+            code.co_varnames,
+            code.co_filename,
+            code.co_name,
+            code.co_firstlineno,
+            code.co_lnotab,
+            code.co_freevars,
+            code.co_cellvars, ]
 
 
 def code_new(argcount, nlocals, stacksize, flags, code, consts,
              names, varnames, filename, name, firstlineno, lnotab,
              freevars, cellvars):
-
     """
     Create a new code object. Identical to :func:`new.code`
 
@@ -193,7 +191,6 @@ def code_new(argcount, nlocals, stacksize, flags, code, consts,
 
 
 def function_unnew(func):
-
     """
     The necessary arguments for use in :func:`function_new` to create
     an identical but distinct :data:`~types.FunctionType` instance.
@@ -203,15 +200,14 @@ def function_unnew(func):
     :return: :class:`list` of member values of `func`
     """
 
-    return [ func.func_code,
-             func.func_globals,
-             func.func_name,
-             func.func_defaults,
-             func.func_closure ]
+    return [func.func_code,
+            func.func_globals,
+            func.func_name,
+            func.func_defaults,
+            func.func_closure, ]
 
 
 def function_new(code, with_globals, name, defaults, closure):
-
     """
     Creates a new function. Identical to :func:`new.function`
 
@@ -230,8 +226,7 @@ def function_new(code, with_globals, name, defaults, closure):
     return new.function(code, with_globals, name, defaults, closure)
 
 
-class BrinedObject(object): # pragma: no cover
-
+class BrinedObject(object):  # pragma: no cover
     """
     Abstract base class for brine wrappers. Defines the interface
     required for brine.
@@ -335,7 +330,7 @@ class BrinedFunction(BrinedObject):
     def _function_unnew(self, function):
         unfunc = function_unnew(function)
         unfunc[0] = self._code_unnew(unfunc[0])
-        unfunc[1] = dict() # strip out func_globals
+        unfunc[1] = dict()  # strip out func_globals
         return unfunc
 
 
