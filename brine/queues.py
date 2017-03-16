@@ -97,13 +97,15 @@ class BrinedSimpleQueue(SimpleQueue):
         super(BrinedSimpleQueue, self)._make_methods()
 
         _put = self.put
+        _get = self.get
+
         def put(value):
             _put(brine(value))
-        self.put = put
 
-        _get = self.get
         def get():
             return unbrine(_get())
+
+        self.put = put
         self.get = get
 
 
@@ -163,18 +165,20 @@ class BarreledSimpleQueue(SimpleQueue):
 
         super(BarreledSimpleQueue, self)._make_methods()
 
-        _get = self.get
-        def get():
-            bar = _get()
-            return bar[0]
-        self.get = get
-
         _put = self.put
+        _get = self.get
+
         def put(value):
             bar = Barrel()
             bar[0] = value
             _put(bar)
+
+        def get():
+            bar = _get()
+            return bar[0]
+
         self.put = put
+        self.get = get
 
 
 #
