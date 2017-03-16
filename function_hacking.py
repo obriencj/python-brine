@@ -14,7 +14,6 @@
 
 
 """
-
 Messing with Python Function, Code, and Cell objects
 
 This is a code narrative that explains how functions are represented,
@@ -22,7 +21,6 @@ and what information we need to have to assemble new functions.
 
 author: Christopher O'Brien  <siege@preoccupied.net>
 license: LGPL v.3
-
 """
 
 
@@ -38,25 +36,24 @@ def add_8(x):
 print "add_8(100) is", add_8(100)
 
 
-
 def code_unnew(code):
+    """
+    returns the necessary arguments for use in new.code to create an
+    equivalent but separate code block
+    """
 
-    ''' returns the necessary arguments for use in new.code to create
-    an equivalent but separate code block ''' 
-    
-    return [ code.co_argcount,
-             code.co_nlocals,
-             code.co_stacksize,
-             code.co_flags,
-             code.co_code,
-             code.co_consts,
-             code.co_names,
-             code.co_varnames,
-             code.co_filename,
-             code.co_name,
-             code.co_firstlineno,
-             code.co_lnotab ]
-
+    return [code.co_argcount,
+            code.co_nlocals,
+            code.co_stacksize,
+            code.co_flags,
+            code.co_code,
+            code.co_consts,
+            code.co_names,
+            code.co_varnames,
+            code.co_filename,
+            code.co_name,
+            code.co_firstlineno,
+            code.co_lnotab, ]
 
 
 #
@@ -79,7 +76,6 @@ add_5 = new.function(new_code, globals(), None, None, ())
 
 # let's try out the new function
 print "add_5(100) is", add_5(100)
-
 
 
 #
@@ -119,7 +115,6 @@ def cell_from_value(val):
     return dummy.func_closure[0]
 
 
-
 #
 # Well that was fun, but what happens if the value we want to replace
 # isn't in the constants pool for the code, but is instead a closure
@@ -156,7 +151,6 @@ add_7 = new.function(code, globals(), None, None, (new_cell,))
 
 # and let's try it out
 print "add_7(5) is", add_7(5)
-
 
 
 # So far we haven't been updating the internal names of either the
